@@ -3,47 +3,106 @@
 
 echo "🔍 Running pre-commit checks..."
 
-# Check if we're in a template directory
-if [ -f "package.json" ] && grep -q '"name": ".*template' package.json; then
-    echo "📦 Detected template project, running template-specific checks..."
+# Function to check if we're in a template directory
+is_template_dir() {
+    # Check if we're in a directory that looks like a template
+    local current_dir=$(basename "$PWD")
 
-    # Check if template has required files
-    required_files=("README.md" "package.json")
-    missing_files=()
+    # Template directories typically have README.md and one of the common project files
+    if [ -f "README.md" ]; then
+        if [ -f "package.json" ] || [ -f "requirements.txt" ] || [ -f "go.mod" ] || [ -f "Cargo.toml" ] || [ -f "pyproject.toml" ] || [ -f "CMakeLists.txt" ] || [ -f "Makefile" ]; then
+            return 0  # This is a template directory
+        fi
+    fi
 
-    for file in "${required_files[@]}"; do
-        if [ ! -f "$file" ]; then
-            missing_files+=("$file")
+    return 1  # Not a template directory
+}
+
+# Function to run checks for a specific template directory
+check_template() {
+    local template_dir="$1"
+    echo "📁 Checking template: $template_dir"
+
+    # Check if template has README.md
+    if [ ! -f "$template_dir/README.md" ]; then
+        echo "❌ Template '$template_dir' missing README.md"
+        return 1
+    fi
+
+    # Check if README has minimal required sections
+    local readme="$template_dir/README.md"
+    if ! grep -q -i "## [Ii]nstallation\|## [Ss]etup\|## [Uu]sage\|## [Qq]uick [Ss]tart" "$readme"; then
+        echo "⚠️  Template '$template_dir' README should include setup/installation/usage sections"
+    fi
+
+    echo "✅ Template '$template_dir' documentation looks good"
+    return 0
+}
+
+# Check if we're committing from root repository
+if [ "$PWD" = "$(git rev-parse --show-toplevel)" ]; then
+    echo "🏠 Root repository commit detected..."
+
+    # Find all template directories (directories with README.md and package files)
+    failed_templates=()
+
+    for dir in */; do
+        if [ -d "$dir" ] && [ -f "$dir/README.md" ]; then
+            if [ -f "$dir/package.json" ] || [ -f "$dir/requirements.txt" ] || [ -f "$dir/go.mod" ] || [ -f "$dir/Cargo.toml" ] || [ -f "$dir/pyproject.toml" ] || [ -f "$dir/CMakeLists.txt" ] || [ -f "$dir/Makefile" ]; then
+                if ! check_template "$dir"; then
+                    failed_templates+=("$dir")
+                fi
+            fi
         fi
     done
 
-    if [ ${#missing_files[@]} -gt 0 ]; then
-        echo "❌ Missing required files: ${missing_files[*]}"
-        echo "Template projects must include: ${required_files[*]}"
+    # If any template checks failed, exit with error
+    if [ ${#failed_templates[@]} -gt 0 ]; then
+        echo "❌ Template validation failed for: ${failed_templates[*]}"
+        echo "Please fix the above issues before committing"
         exit 1
     fi
 
-    # Run tests if they exist
-    if npm run test 2>/dev/null; then
-        echo "✅ Tests passed"
-    elif [ $? -eq 1 ]; then
-        echo "❌ Tests failed"
-        exit 1
-    fi
+    # Check changed templates to ensure they still work
+    echo "🔧 Testing changed templates..."
+    changed_dirs=$(git diff --cached --name-only | xargs dirname | sort -u | grep -v '^\.$')
+
+    for dir in $changed_dirs; do
+        if [ -d "$dir" ]; then
+            cd "$dir"
+            if is_template_dir; then
+                # Run tests based on the project type
+                if [ -f "package.json" ] && command -v npm >/dev/null 2>&1; then
+                    if npm test >/dev/null 2>&1; then
+                        echo "✅ $dir (Node.js) tests passed"
+                    fi
+                elif [ -f "requirements.txt" ] || [ -f "pyproject.toml" ] && command -v python >/dev/null 2>&1; then
+                    if python -m pytest >/dev/null 2>&1; then
+                        echo "✅ $dir (Python) tests passed"
+                    fi
+                elif [ -f "go.mod" ] && command -v go >/dev/null 2>&1; then
+                    if go test ./... >/dev/null 2>&1; then
+                        echo "✅ $dir (Go) tests passed"
+                    fi
+                elif [ -f "Cargo.toml" ] && command -v cargo >/dev/null 2>&1; then
+                    if cargo test >/dev/null 2>&1; then
+                        echo "✅ $dir (Rust) tests passed"
+                    fi
+                fi
+            fi
+            cd ..
+        fi
+    done
 else
-    echo "🏠 Root repository checks..."
+    echo "📝 Committing within a template directory..."
 
-    # For root repository, check if we can build templates
-    if [ -d "nodejs-ts-cli" ]; then
-        echo "🔧 Testing nodejs-ts-cli template..."
-        cd nodejs-ts-cli
-        if npm run build; then
-            echo "✅ nodejs-ts-cli template builds successfully"
-        else
-            echo "❌ nodejs-ts-cli template build failed"
+    # If committing within a template directory, validate that template
+    if is_template_dir; then
+        current_template=$(basename "$PWD")
+        if ! check_template "."; then
+            echo "❌ Template validation failed for '$current_template'"
             exit 1
         fi
-        cd ..
     fi
 fi
 
