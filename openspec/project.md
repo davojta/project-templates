@@ -88,7 +88,7 @@ Each template should be self-contained and immediately usable after standard set
 ### Technical Constraints
 - **Node.js Version**: Templates should target modern Node.js (18+)
 - **Browser Support**: Frontend templates should support modern browsers (ES2020+)
-- **Python Version**: Target Python 3.8+ for compatibility
+- **Python Version**: Target Python 3.10+ for modern features and compatibility
 - **Language Versions**: Use stable, recent versions of all languages
 - **Security**: No hardcoded secrets, proper input validation, dependency scanning
 - **Performance**: Templates should be reasonably performant for their intended use case
