@@ -2,6 +2,11 @@
 
 Set of templates to start from scratch for different languages and stacks.
 
+## Templates
+
+- **nodejs-ts-cli** - TypeScript CLI application with Commander.js, testing, and build tooling
+- **python-cli** - Python CLI application with Click, pytest, and uv package manager
+
 ## Setup
 
 This repository uses [Husky](https://typicode.github.io/husky/) and [Commitlint](https://commitlint.js.org/) to enforce conventional commit messages.
