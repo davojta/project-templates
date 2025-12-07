@@ -166,6 +166,7 @@ New request?
 [1-2 sentences on problem/opportunity]
 
 ## What Changes
+- [File system layout changes]
 - [Bullet list of changes]
 - [Mark breaking changes with **BREAKING**]
 
