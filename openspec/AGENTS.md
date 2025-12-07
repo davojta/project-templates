@@ -199,13 +199,49 @@ If multiple capabilities are affected, create multiple delta files under `change
 4. **Create tasks.md:**
 ```markdown
 ## 1. Implementation
-- [ ] 1.1 Create database schema
-- [ ] 1.2 Implement API endpoint
-- [ ] 1.3 Add frontend component
-- [ ] 1.4 Write tests
-```
+### File Structure for the Change
+- [ ] 1.1 Define new files and directories to be created
+- [ ] 1.2 Specify existing files that will be modified
+- [ ] 1.3 Document file organization and module layout
+- [ ] 1.4 Create project structure diagram or list
 
-5. **Create design.md when needed:**
+### Input Parameters and Data
+- [ ] 1.5 Define input data structures and validation requirements
+- [ ] 1.6 Specify parameter types, formats, and constraints
+- [ ] 1.7 Document data sources and integration points
+
+### Output Parameters and Data
+- [ ] 1.8 Define output data structures and response formats
+- [ ] 1.9 Specify return types and success/error response schemas
+- [ ] 1.10 Document data transformation requirements
+
+### High-Level Data Flow Inside the Program
+- [ ] 1.11 Map end-to-end data flow from input to output
+- [ ] 1.12 Identify data processing steps and transformations
+- [ ] 1.13 Define component interactions and data handoffs
+- [ ] 1.14 Document state management and data persistence
+
+### Error Handling
+- [ ] 1.15 Define error types and exception scenarios
+- [ ] 1.16 Implement error propagation and logging
+- [ ] 1.17 Create user-friendly error messages and recovery flows
+- [ ] 1.18 Add input validation and sanitization
+
+### Data Models to Implement the Task
+- [ ] 1.19 Design core data models and entities
+- [ ] 1.20 Define relationships between data models
+- [ ] 1.21 Implement data access layer and repositories
+- [ ] 1.22 Create data transfer objects (DTOs) and mappers
+
+### Core Implementation Tasks
+- [ ] 1.23 Implement business logic and algorithms
+- [ ] 1.24 Create API endpoints and handlers
+- [ ] 1.25 Build user interface components
+- [ ] 1.26 Add configuration and environment setup
+- [ ] 1.27 Implement integration with external services
+```
+``
+5. **Create design.md when needed:``**
 Create `design.md` if any of the following apply; otherwise omit it:
 - Cross-cutting change (multiple services/modules) or a new architectural pattern
 - New external dependency or significant data model changes
