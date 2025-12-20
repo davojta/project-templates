@@ -1,0 +1,1 @@
+"""Core spatial processing functionality."""
