@@ -32,6 +32,9 @@ dependencies = [
     # Data format handling
     "pyarrow>=16.0.0",
     "pandas>=2.0.0",
+
+    # Environment variables
+    "python-dotenv>=1.0.0",
 ]
 requires-python = ">=3.12"
 readme = "README.md"
@@ -39,7 +42,7 @@ license = {text = "MIT"}
 
 [project.optional-dependencies]
 viz = [
-    "keplergl>=0.3.0",  # Web-based geospatial visualization
+    "keplergl==0.3.7",  # Web-based geospatial visualization
     "matplotlib>=3.8.0",
 ]
 notebooks = [
@@ -65,7 +68,7 @@ dev = [
     "pytest>=8.0.0",
     "pytest-cov>=5.0.0",
     "pytest-mock>=3.10.0",
-    "keplergl>=0.3.0",
+    "keplergl==0.3.7",
     "jupyter>=1.0.0",
     "jupyterlab>=4.1.0",
 ]

@@ -31,6 +31,10 @@ uv sync
 
 # Install development dependencies
 uv sync --group dev --group notebooks --group viz
+
+# Set up environment variables (optional but recommended)
+cp example.env .env
+# Edit .env and add your Mapbox access token
 ```
 
 ### Basic Usage
@@ -39,26 +43,26 @@ uv sync --group dev --group notebooks --group viz
 # Show help
 make run-main
 
-# Download OSM data for London buildings
+# Download OSM data for Helsinki buildings
 uv run geo-cli download region \
-  --bbox "-0.1,51.45,-0.05,51.55" \
+  --bbox "24.925240,60.166280,24.958358,60.178755" \
   --tags "building:residential" \
-  --name "london_buildings"
+  --name "helsinki_buildings"
 
 # Process spatial data (buffer operation)
 uv run geo-cli process spatial \
-  --input data/processed/london_buildings.geoparquet \
+  --input data/processed/helsinki_buildings.geoparquet \
   --operation buffer \
   --distance 500 \
-  --name "london_buildings_buffered"
+  --name "helsinki_buildings_buffered"
 
-# Create interactive visualization
+# Create interactive visualization (saved to output-map/)
 uv run geo-cli viz map \
-  --input data/processed/london_buildings_buffered.geoparquet \
-  --output london_buildings_map.html
+  --input data/processed/helsinki_buildings_buffered.geoparquet \
+  --output helsinki_buildings_map.html
 
 # Get information about a dataset
-uv run geo-cli process info --input data/processed/london_buildings.geoparquet
+uv run geo-cli process info --input data/processed/helsinki_buildings.geoparquet
 ```
 
 ## 📁 Project Structure
@@ -86,6 +90,9 @@ python-geo-cli/
 │   ├── raw/                        # Raw OSM .pbf files
 │   ├── processed/                  # GeoParquet files
 │   └── cache/                      # QuackOSM cache
+├── output-map/                     # Generated HTML maps
+├── example.env                     # Environment variables template
+├── .env                            # Your local environment variables
 ├── tests/                          # Unit tests
 ├── integration-tests/              # Integration tests
 ├── e2e-tests/                      # End-to-end tests
@@ -106,7 +113,7 @@ uv run geo-cli download region \
 
 # Download with OSM tag filtering
 uv run geo-cli download region \
-  --bbox "-0.1,51.45,-0.05,51.55" \
+  --bbox "24.925240,60.166280,24.958358,60.178755" \
   --tags "building:residential,highway:primary" \
   --name "filtered_data"
 ```
@@ -159,12 +166,12 @@ uv run geo-cli process reproject \
 ### Interactive Maps
 
 ```bash
-# Basic map
+# Basic map (saved to output-map/interactive_map.html)
 uv run geo-cli viz map \
   --input data/processed/results.geoparquet \
   --output interactive_map.html
 
-# Map with color coding
+# Map with color coding (saved to output-map/styled_map.html)
 uv run geo-cli viz map \
   --input data/processed/results.geoparquet \
   --color "#FF6B6B" \
@@ -182,7 +189,7 @@ uv run geo-cli viz config \
   --output kepler_dark.json \
   --style dark
 
-# Use custom config
+# Use custom config (saved to output-map/themed_map.html)
 uv run geo-cli viz map \
   --input data/results.geoparquet \
   --config kepler_dark.json \
@@ -249,7 +256,7 @@ from geo_cli.viz.kepler_maps import KeplerVisualizer
 
 # Download data
 downloader = OSMDownloader()
-bbox = (-0.1, 51.45, -0.05, 51.55)
+bbox = (24.925240, 60.166280, 24.958358, 60.178755)
 data_path = downloader.download_region(
     bbox=bbox,
     tags={"building": ["residential"]}
@@ -263,7 +270,7 @@ processor.load_geoparquet(data_path, "buildings")
 buffered = processor.buffer("buildings", distance=500)
 processor.to_geoparquet("buffered", "buildings_buffered.geoparquet")
 
-# Create visualization
+# Create visualization (saved to output-map/buildings_map.html)
 visualizer = KeplerVisualizer()
 viz_data = visualizer.create_visualization(
     "buildings_buffered.geoparquet",
@@ -311,22 +318,40 @@ print(downloader.get_cache_info())
 
 The CLI uses Pydantic models for configuration. You can customize behavior through:
 
-- Environment variables
+- Environment variables (via .env file)
 - Configuration files
 - Command-line parameters
 
-### Environment Variables
+### Environment Setup
+
+Copy `example.env` to `.env` and configure your settings:
 
 ```bash
-# Set cache directory
-export GEO_CLI_CACHE_DIR="/path/to/cache"
-
-# Set log level
-export GEO_CLI_LOG_LEVEL="DEBUG"
-
-# Set memory limit
-export GEO_CLI_MAX_MEMORY_GB="16"
+cp example.env .env
 ```
+
+Key environment variables:
+
+```bash
+# Mapbox Access Token for enhanced basemaps (recommended)
+MAPBOX_ACCESS_TOKEN=your_token_here
+
+# Cache directory for OSM data
+GEO_CLI_CACHE_DIR=./data/cache
+
+# Log level (DEBUG, INFO, WARNING, ERROR)
+GEO_CLI_LOG_LEVEL=INFO
+
+# Memory limit for SedonaDB in GB
+GEO_CLI_MAX_MEMORY_GB=8
+```
+
+### Getting a Mapbox Token
+
+1. Sign up at [Mapbox](https://mapbox.com/)
+2. Create an account and navigate to your Account page
+3. Find your "Default public token" or create a new one
+4. Add it to your `.env` file as `MAPBOX_ACCESS_TOKEN`
 
 ## 🐛 Troubleshooting
 

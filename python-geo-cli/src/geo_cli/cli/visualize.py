@@ -5,6 +5,13 @@ from pathlib import Path
 from typing import Optional, List
 from rich.console import Console
 import json
+import pandas as pd
+import geopandas as gpd
+
+from ..utils.env import load_env, get_mapbox_token
+
+# Load environment variables
+load_env()
 
 console = Console()
 app = click.Group(help="Create visualizations with KeplerGL")
@@ -21,7 +28,7 @@ app = click.Group(help="Create visualizations with KeplerGL")
     "--output",
     type=click.Path(),
     default="visualization.html",
-    help="Output HTML file"
+    help="Output HTML filename (will be saved to output-map/ directory)"
 )
 @click.option(
     "--color",
@@ -53,7 +60,11 @@ def map(
 ):
     """Create an interactive map from spatial data."""
     input_path = Path(input)
-    output_path = Path(output)
+
+    # Create output-map directory and set output path
+    output_dir = Path("output-map")
+    output_dir.mkdir(exist_ok=True)
+    output_path = output_dir / Path(output).name
 
     console.print(f"[bold blue]🗺️  Creating visualization[/bold blue]")
     console.print(f"  Input: {input_path}")
@@ -61,8 +72,6 @@ def map(
 
     try:
         with console.status("[bold green]Processing spatial data...", spinner="dots"):
-            import geopandas as gpd
-
             # Read the data
             gdf = gpd.read_parquet(input_path)
 
@@ -71,38 +80,103 @@ def map(
                 console.print("  [yellow]Reprojecting to EPSG:4326 for KeplerGL[/yellow]")
                 gdf = gdf.to_crs('EPSG:4326')
 
-            # Convert to GeoJSON
-            geojson = json.loads(gdf.to_json())
+        with console.status("[bold green]Generating KeplerGL map...", spinner="dots"):
+            # Get Mapbox token
+            mapbox_token = get_mapbox_token()
+            if mapbox_token:
+                console.print(f"  [green]✓ Using Mapbox token for enhanced basemaps[/green]")
+            else:
+                console.print(f"  [yellow]⚠ No Mapbox token found - using default basemaps[/yellow]")
 
-            # Calculate center
+            # Import KeplerGL
+            from keplergl import KeplerGl
+
+            # Create KeplerGL instance with Mapbox token
+            kepler_map = KeplerGl(
+                height=800,
+                width=1200,
+                show_header=True,
+                show_info_panel=True,
+                show_timeline=False
+            )
+
+            # Convert GeoDataFrame to DataFrame for KeplerGL
+            df = pd.DataFrame(gdf.drop(columns='geometry'))
+
+            # Add coordinates as separate columns using centroid for polygons
+            if gdf.geometry.geom_type.iloc[0] == 'Point':
+                df['longitude'] = gdf.geometry.x
+                df['latitude'] = gdf.geometry.y
+            else:
+                # For polygons, use representative point which works better with geographic CRS
+                df['longitude'] = gdf.geometry.representative_point().x
+                df['latitude'] = gdf.geometry.representative_point().y
+
+            # Add data to map
+            kepler_map.add_data(
+                data=df,
+                name="Spatial Data"
+            )
+
+            # Load custom config if provided
+            if config:
+                with open(config, 'r') as f:
+                    kepler_config = json.load(f)
+                kepler_map.config = kepler_config
+
+            # Calculate center and zoom for initial view
             bounds = gdf.total_bounds
             center_lat = (bounds[1] + bounds[3]) / 2
             center_lon = (bounds[0] + bounds[2]) / 2
 
-        with console.status("[bold green]Generating KeplerGL map...", spinner="dots"):
-            # Load custom config if provided
-            kepler_config = None
+            # Estimate appropriate zoom level based on bounds
+            lat_diff = bounds[3] - bounds[1]
+            lon_diff = bounds[2] - bounds[0]
+            zoom = 10
+            if lat_diff > 10 or lon_diff > 10:
+                zoom = 5
+            elif lat_diff > 1 or lon_diff > 1:
+                zoom = 8
+            elif lat_diff > 0.1 or lon_diff > 0.1:
+                zoom = 12
+            else:
+                zoom = 15
+
+            # Update map view
+            current_config = kepler_map.config
+            if 'config' in current_config and 'visState' in current_config['config']:
+                current_config['config']['visState']['mapState'].update({
+                    'latitude': center_lat,
+                    'longitude': center_lon,
+                    'zoom': zoom
+                })
+
+            # Apply color and styling if no custom config
+            if not config:
+                try:
+                    layers = current_config['config']['visState']['layers']
+                    if layers:
+                        layers[0]['config']['visConfig'].update({
+                            'color': [color],
+                            'radius': radius,
+                            'opacity': 0.8
+                        })
+                except (KeyError, IndexError, TypeError):
+                    # If config structure is different, skip styling
+                    pass
+
+            # Save to HTML using KeplerGL's built-in method
             if config:
-                with open(config, 'r') as f:
-                    kepler_config = json.load(f)
-
-            # Create visualization
-            viz_data = create_kepler_visualization(
-                geojson=geojson,
-                center_lat=center_lat,
-                center_lon=center_lon,
-                color=color,
-                radius=radius,
-                label_field=label_field,
-                config=kepler_config
-            )
-
-            # Generate HTML
-            html_content = generate_kepler_html(viz_data, title="Geospatial Visualization")
-
-            # Write HTML file
-            with open(output_path, 'w') as f:
-                f.write(html_content)
+                kepler_map.save_to_html(
+                    file_name=str(output_path),
+                    config=kepler_map.config,
+                    read_only=False
+                )
+            else:
+                kepler_map.save_to_html(
+                    file_name=str(output_path),
+                    read_only=False
+                )
 
     except Exception as e:
         console.print(f"[red]❌ Visualization failed: {e}[/red]")
@@ -163,145 +237,3 @@ def config(output: str, style: str):
         raise click.Abort()
 
 
-def create_kepler_visualization(
-    geojson: dict,
-    center_lat: float,
-    center_lon: float,
-    color: str = "#1f77b4",
-    radius: float = 10,
-    label_field: Optional[str] = None,
-    config: Optional[dict] = None
-) -> dict:
-    """Create KeplerGL visualization data."""
-    # Default configuration
-    default_config = {
-        'version': 'v1',
-        'config': {
-            'visState': {
-                'layers': [
-                    {
-                        'id': 'data_layer',
-                        'type': 'geojson',
-                        'config': {
-                            'dataId': 'data',
-                            'label': 'Spatial Data',
-                            'color': [color],
-                            'columns': {},
-                            'isVisible': True,
-                            'visConfig': {
-                                'opacity': 0.8,
-                                'strokeOpacity': 0.8,
-                                'thickness': 0.5,
-                                'strokeColor': [255, 255, 255],
-                                'colorRange': {
-                                    'name': 'Global Warming',
-                                    'type': 'sequential',
-                                    'category': 'Uber',
-                                    'colors': ['#5A1846', '#900C3F', '#C70039', '#E3611C', '#F1920E', '#FFC300']
-                                },
-                                'radius': radius
-                            }
-                        },
-                        'visualChannels': {
-                            'colorField': None,
-                            'sizeField': None
-                        }
-                    }
-                ],
-                'mapState': {
-                    'latitude': center_lat,
-                    'longitude': center_lon,
-                    'zoom': 10,
-                    'bearing': 0,
-                    'pitch': 0
-                },
-                'mapStyle': {
-                    'styleType': 'light'
-                }
-            }
-        }
-    }
-
-    # Merge with custom config if provided
-    if config:
-        kepler_config = config
-        # Update map state to center on our data
-        if 'config' in kepler_config and 'visState' in kepler_config['config']:
-            kepler_config['config']['visState']['mapState'].update({
-                'latitude': center_lat,
-                'longitude': center_lon,
-                'zoom': 10
-            })
-    else:
-        kepler_config = default_config
-
-    return {
-        'datasets': [
-            {
-                'info': {
-                    'id': 'data',
-                    'label': 'Spatial Data'
-                },
-                'data': geojson
-            }
-        ],
-        'config': kepler_config['config']
-    }
-
-
-def generate_kepler_html(viz_data: dict, title: str = "Geospatial Visualization") -> str:
-    """Generate HTML file for KeplerGL visualization."""
-    html_template = f"""
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{title}</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body {{
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-        }}
-        .container {{
-            width: 100vw;
-            height: 100vh;
-        }}
-        .header {{
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            z-index: 1000;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }}
-    </style>
-    <script src="https://unpkg.com/kepler.gl@latest/umd/keplergl.min.js"></script>
-</head>
-<body>
-    <div class="header">
-        <h3>{title}</h3>
-        <p>Interactive map powered by KeplerGL</p>
-    </div>
-    <div class="container" id="map-container"></div>
-
-    <script>
-        const data = {json.dumps(viz_data)};
-
-        const keplergl = new keplergl.KeplerGl({{
-            "mapboxApiAccessToken": null, // Use mapbox style without token
-            "id": "map"
-        }});
-
-        keplergl.loadMap(data);
-
-        // Add to container
-        document.getElementById('map-container').appendChild(keplergl.container);
-    </script>
-</body>
-</html>
-"""
-    return html_template

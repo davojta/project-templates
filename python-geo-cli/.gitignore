@@ -191,3 +191,5 @@ Thumbs.db
 
 # UV lock file (generated)
 uv.lock
+
+output-map
