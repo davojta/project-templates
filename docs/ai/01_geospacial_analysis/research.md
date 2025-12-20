@@ -381,9 +381,9 @@ viz_data = visualizer.create_visualization("data/processed/result.geoparquet")
 
 ## Dependencies and Versions
 
-- Python: >=3.11
+- Python: >=3.12
 - Click: >=8.1.0
-- SedonaDB: >=1.8.0
+- SedonaDB: >=0.2.0
 - QuackOSM: >=0.2.0
 - GeoPandas: >=1.0.0
 - KeplerGL: >=0.3.0

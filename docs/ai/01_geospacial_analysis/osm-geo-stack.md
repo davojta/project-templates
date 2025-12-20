@@ -22,7 +22,7 @@ This is a production-ready, modern stack for processing OpenStreetMap data with 
 name = "osm-geo-processor"
 version = "0.1.0"
 description = "Geospatial OSM processing with SedonaDB and QuackOSM"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
     # Core CLI framework
     "click>=8.1.0",
@@ -30,7 +30,7 @@ dependencies = [
     "rich>=13.7.0",
 
     # Primary spatial engine - CHOOSE ONE:
-    "sedonadb>=1.8.0",  # ← RECOMMENDED: Fastest spatial operations
+    "sedonadb>=0.2.0",  # ← RECOMMENDED: Fastest spatial operations
 
     # OSM data fetching
     "quackosm>=0.2.0",  # Caching, multithreaded, GeoParquet output
