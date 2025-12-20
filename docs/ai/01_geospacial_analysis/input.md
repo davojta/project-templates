@@ -1,0 +1,1 @@
+/home/dzianis/projects/dev/github/project-templates/docs/ai/01_geospacial_analysis make an reasearch hpw to implmenent another version of plugin based in existing python-cli 
