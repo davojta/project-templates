@@ -1,1 +1,1 @@
-"""End-to-end tests for the geospatial CLI."""
+"""End-to-end tests for geo-cli."""

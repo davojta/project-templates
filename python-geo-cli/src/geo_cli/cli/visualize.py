@@ -27,8 +27,8 @@ app = click.Group(help="Create visualizations with KeplerGL")
 @click.option(
     "--output",
     type=click.Path(),
-    default="visualization.html",
-    help="Output HTML filename (will be saved to output-map/ directory)"
+    default="output-map/visualization.html",
+    help="Output HTML file path"
 )
 @click.option(
     "--color",
@@ -60,11 +60,10 @@ def map(
 ):
     """Create an interactive map from spatial data."""
     input_path = Path(input)
+    output_path = Path(output)
 
-    # Create output-map directory and set output path
-    output_dir = Path("output-map")
-    output_dir.mkdir(exist_ok=True)
-    output_path = output_dir / Path(output).name
+    # Create output directory if it doesn't exist
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
     console.print(f"[bold blue]🗺️  Creating visualization[/bold blue]")
     console.print(f"  Input: {input_path}")
