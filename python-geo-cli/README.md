@@ -80,7 +80,9 @@ python-geo-cli/
 │   │   ├── processor.py            # SedonaDB operations
 │   │   └── spatial_ops.py          # Spatial analysis functions
 │   ├── viz/                        # Visualization components
-│   │   └── kepler_maps.py          # KeplerGL visualizations
+│   │   ├── renderer.py             # KeplerGL map renderer
+│   │   ├── indexer.py              # H3 spatial indexing
+│   │   └── basemaps.py             # Mapbox basemap config
 │   ├── models/                     # Data models
 │   │   └── config.py               # Pydantic configuration models
 │   └── utils/                      # Utility functions
@@ -252,7 +254,7 @@ Example notebooks are available in the `notebooks/` directory:
 ```python
 from geo_cli.core.downloader import OSMDownloader
 from geo_cli.core.processor import SedonaProcessor
-from geo_cli.viz.kepler_maps import KeplerVisualizer
+from geo_cli.viz import create_map
 
 # Download data
 downloader = OSMDownloader()
@@ -270,13 +272,119 @@ processor.load_geoparquet(data_path, "buildings")
 buffered = processor.buffer("buildings", distance=500)
 processor.to_geoparquet("buffered", "buildings_buffered.geoparquet")
 
-# Create visualization (saved to output-map/buildings_map.html)
-visualizer = KeplerVisualizer()
-viz_data = visualizer.create_visualization(
-    "buildings_buffered.geoparquet",
-    label_field="building"
+# Create visualization with H3 index layer
+create_map(
+    source="buildings_buffered.geoparquet",
+    output_path="output-map/buildings_map.html",
+    basemap="streets",
+    h3_resolution=9
 )
-visualizer.save_html(viz_data, "buildings_map.html")
+```
+
+### Multi-Layer Visualization with H3 Indexing
+
+Create maps with automatic H3 spatial indexing for feature density context:
+
+```python
+from geo_cli.viz import create_map
+
+# Create map with H3 index layer (blue) and target features (red)
+create_map(
+    source="data/example/export.geojson",  # or GeoDataFrame
+    output_path="output-map/indexed_map.html",
+    basemap="streets",  # or "outdoor"
+    h3_resolution=9,    # ~174m cell edge
+    title="Buildings with H3 Index"
+)
+```
+
+This creates a two-layer visualization:
+- **Index Layer** (blue, 50% opacity): H3 hexagonal cells colored by feature count
+- **Target Layer** (red, 90% opacity): Original features
+- **Auto-centering**: Map centers on the H3 cell with most features
+
+### KeplerGL Layer Config Reference
+
+When customizing layer styles, use this config structure:
+
+```python
+layer_config = {
+    "id": "my_layer",              # Unique layer ID
+    "type": "geojson",             # Layer type: geojson, point, arc, hexagon
+
+    "config": {
+        # Data Binding
+        "dataId": "my_data",       # Must match key in data={...} dict
+        "label": "My Layer",       # Display name in layer panel
+        "columns": {"geojson": "_geojson"},  # Geometry column mapping
+
+        # Base Colors
+        "color": [255, 0, 0],              # Fill color RGB
+        "highlightColor": [200, 0, 0, 230], # Hover color RGBA
+
+        # Visibility
+        "isVisible": True,         # Layer visible on map
+        "hidden": False,           # Hidden from layer panel
+
+        # Visual Properties
+        "visConfig": {
+            "opacity": 0.8,            # Fill opacity (0-1)
+            "strokeOpacity": 0.8,      # Stroke opacity
+            "thickness": 0.5,          # Stroke width in pixels
+            "strokeColor": [200, 0, 0], # Stroke color RGB
+            "stroked": True,           # Enable stroke
+            "filled": True,            # Enable fill
+
+            # Color palette for data-driven styling
+            "colorRange": {
+                "name": "Global Warming",
+                "type": "sequential",
+                "category": "Uber",
+                "colors": ["#5A1846", "#900C3F", "#C70039", "#E3611C", "#F1920E", "#FFC300"],
+            },
+
+            # Point-specific
+            "radius": 10,
+            "radiusRange": [0, 50],
+
+            # 3D options
+            "enable3d": False,
+            "heightRange": [0, 500],
+            "elevationScale": 5,
+        },
+
+        # Text Labels
+        "textLabel": [{
+            "field": None,            # Property to display
+            "color": [255, 255, 255],
+            "size": 18,
+        }],
+    },
+
+    # Data-Driven Styling
+    "visualChannels": {
+        "colorField": {"name": "count", "type": "integer"},  # Property for fill color
+        "colorScale": "quantile",     # Scale: quantile, quantize, linear
+        "strokeColorField": None,
+        "sizeField": None,
+    },
+}
+```
+
+**Key Points:**
+| Field | Purpose |
+|-------|---------|
+| `dataId` | Links layer to dataset - must match data dict key |
+| `color` | Base fill color when `colorField` is None |
+| `visConfig.filled` | Must be `True` to see fill |
+| `visConfig.stroked` | Must be `True` to see borders |
+| `visualChannels.colorField` | Set to property name for data-driven colors |
+
+**Important:** Pass data as GeoJSON dict (not GeoDataFrame) for config to apply:
+```python
+import json
+geojson_data = json.loads(gdf.to_json())
+KeplerGl(data={"my_data": geojson_data}, config=config)
 ```
 
 ## 🎯 Performance Tips

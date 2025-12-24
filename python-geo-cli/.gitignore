@@ -190,6 +190,6 @@ data/cache/
 Thumbs.db
 
 # UV lock file (generated)
-uv.lock
+# uv.lock
 
-output-map
+map/
