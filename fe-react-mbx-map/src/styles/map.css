@@ -1,0 +1,79 @@
+#map-container {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.sidebar {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: rgba(35, 55, 75, 0.9);
+  color: #fff;
+  padding: 6px 12px;
+  font-family: monospace;
+  font-size: 12px;
+  z-index: 1;
+  border-radius: 4px;
+}
+
+.reset-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+  padding: 8px 16px;
+  background-color: #3386c0;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.reset-button:hover:not(:disabled) {
+  background-color: #4a9fd4;
+}
+
+.reset-button:disabled {
+  background-color: #888;
+  cursor: not-allowed;
+}
+
+.map-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 20px;
+  text-align: center;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.map-error h2 {
+  color: #d32f2f;
+  margin-bottom: 16px;
+}
+
+.map-error code {
+  background-color: #f5f5f5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+.map-error pre {
+  background-color: #f5f5f5;
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin: 12px 0;
+  font-family: monospace;
+}
+
+.map-error a {
+  color: #3386c0;
+}
