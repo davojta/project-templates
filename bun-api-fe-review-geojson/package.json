@@ -1,0 +1,51 @@
+{
+  "name": "bun-api-fe-review-geojson",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"bun run dev:server\" \"bun run dev:client\"",
+    "dev:server": "bun run --watch index.ts",
+    "dev:client": "cd src/client && vite",
+    "build": "bun build index.ts --outdir dist --target bun && bun run build:client",
+    "build:client": "cd src/client && vite build",
+    "start": "bun run dist/index.js",
+    "seed": "bun run scripts/seed.ts",
+    "test": "vitest",
+    "test:components": "cypress run --component",
+    "test:e2e": "start-server-and-test 'bun dev' http://localhost:3000 'cypress run'",
+    "cypress:open": "cypress open",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@hono/zod-validator": "^0.4.1",
+    "@mui/material": "^7.3.6",
+    "@tanstack/react-query": "^5.0.0",
+    "@tanstack/react-router": "^1.50.0",
+    "hono": "^4.5.0",
+    "lodash": "^4.17.21",
+    "mapbox-gl": "^3.17.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@tanstack/router-plugin": "^1.50.0",
+    "@types/bun": "latest",
+    "@types/lodash": "^4.17.13",
+    "@types/react": "^19.2.3",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.2",
+    "concurrently": "^9.2.1",
+    "cypress": "^15.8.1",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "start-server-and-test": "^2.0.8",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.0",
+    "vitest": "^4.0.16"
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "point-1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -122.4194,
+          37.7749
+        ]
+      },
+      "properties": {
+        "name": "San Francisco",
+        "category": "City",
+        "population": 873965,
+        "isFlagged": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "point-2",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.2437,
+          34.0522
+        ]
+      },
+      "properties": {
+        "name": "Los Angeles",
+        "category": "City",
+        "population": 3979576,
+        "isFlagged": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "point-3",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -73.935242,
+          40.73061
+        ]
+      },
+      "properties": {
+        "name": "New York",
+        "category": "City",
+        "population": 8336817,
+        "isFlagged": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "point-4",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -87.6298,
+          41.8781
+        ]
+      },
+      "properties": {
+        "name": "Chicago",
+        "category": "City",
+        "population": 2693976,
+        "isFlagged": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "point-5",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -95.3698,
+          29.7604
+        ]
+      },
+      "properties": {
+        "name": "Houston",
+        "category": "City",
+        "population": 2320268,
+        "isFlagged": false
+      }
+    }
+  ]
+}
