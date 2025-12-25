@@ -29,8 +29,17 @@ cd python-geo-cli
 # Install dependencies with UV
 uv sync
 
-# Install development dependencies
-uv sync --group dev --group notebooks --group viz
+# Install with development dependencies
+uv sync --group dev
+
+# Install with visualization dependencies (required for viz commands and H3 indexing)
+uv sync --extra viz
+
+# Install with notebook dependencies
+uv sync --extra notebooks
+
+# Install everything (dev + viz + notebooks)
+uv sync --group dev --extra viz --extra notebooks
 
 # Set up environment variables (optional but recommended)
 cp example.env .env
@@ -469,6 +478,7 @@ GEO_CLI_MAX_MEMORY_GB=8
 2. **Download Failures**: Check network connection and OSM API availability
 3. **Visualization Issues**: Ensure data is in EPSG:4326 projection
 4. **Performance**: Use SedonaDB operations instead of GeoPandas when possible
+5. **Missing `srai` module**: Run `uv sync --extra viz` to install visualization dependencies (required for H3 indexing and map creation)
 
 ### Debug Mode
 
