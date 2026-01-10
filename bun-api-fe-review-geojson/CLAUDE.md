@@ -46,7 +46,7 @@ cypress/              # Component and e2e tests
 
 **Quick validation (after each non-trivial edit):**
 ```bash
-bun run test && bun run typecheck
+bun run test:ci && bun run typecheck
 ```
 
 **Component tests:**
