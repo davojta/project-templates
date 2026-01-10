@@ -24,4 +24,14 @@ describe('Review Flow E2E', () => {
     cy.contains('Forward').click();
     cy.contains('Feature').should('exist');
   });
+
+  it('should display basemap selector', () => {
+    cy.contains('Basemap').should('exist');
+    cy.contains('Mapbox Streets').should('exist');
+  });
+
+  it('should change basemap when option clicked', () => {
+    cy.contains('Satellite Streets').click();
+    cy.get('input[value="satellite-streets-v12"]').should('be.checked');
+  });
 });
