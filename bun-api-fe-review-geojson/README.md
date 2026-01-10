@@ -13,6 +13,102 @@ A full-stack template for building geodata review applications with Bun runtime,
 - **Zod validation**: Request/response validation with Zod schemas
 - **Testing**: Vitest for unit tests, Cypress for component and E2E tests
 
+## Data Flow
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                              Browser                                     │
+│  ┌───────────────┐    ┌───────────────┐    ┌───────────────────────┐   │
+│  │  MapShell     │    │  FeatureTable │    │  ReviewControls       │   │
+│  │  (mapbox-gl)  │    │  (MUI Table)  │    │  (status buttons)     │   │
+│  └───────┬───────┘    └───────┬───────┘    └───────────┬───────────┘   │
+│          │                    │                        │                │
+│          └────────────────────┼────────────────────────┘                │
+│                               ▼                                         │
+│                    ┌──────────────────────┐                             │
+│                    │  TanStack Query      │                             │
+│                    │  (useFeatures,       │                             │
+│                    │   useLayers)         │                             │
+│                    └──────────┬───────────┘                             │
+└───────────────────────────────┼─────────────────────────────────────────┘
+                                │ HTTP
+                                ▼
+┌───────────────────────────────────────────────────────────────────────────┐
+│                         Bun Server (Hono)                                 │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────────┐   │
+│  │  /api/layers    │    │  /api/features  │    │  /data/layers/*.json│   │
+│  │  (CRUD)         │    │  (review CRUD)  │    │  (static files)     │   │
+│  └────────┬────────┘    └────────┬────────┘    └─────────────────────┘   │
+│           │                      │                                        │
+│           └──────────┬───────────┘                                        │
+│                      ▼                                                    │
+│           ┌──────────────────────┐                                        │
+│           │  SQLite (db.ts)      │                                        │
+│           │  - layers table      │                                        │
+│           │  - reviews table     │                                        │
+│           └──────────────────────┘                                        │
+└───────────────────────────────────────────────────────────────────────────┘
+```
+
+## Component Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│  __root.tsx (TanStack Router)                                           │
+│  ├── QueryClientProvider                                                │
+│  └── Outlet                                                             │
+│       ├── index.tsx ("/")        ─────► Redirect to /map                │
+│       ├── map.tsx ("/map")                                              │
+│       │    ├── MapShell          ─────► Mapbox GL map container         │
+│       │    │    └── mapbox-gl         Feature visualization             │
+│       │    ├── LayerToggle       ─────► Layer visibility controls       │
+│       │    └── ReviewControls    ─────► Approve/Flag/Pending buttons    │
+│       │                                                                 │
+│       └── table.tsx ("/table")                                          │
+│            ├── FeatureTable      ─────► MUI DataGrid for features       │
+│            └── ReviewControls    ─────► Inline status updates           │
+│                                                                         │
+│  Shared Hooks:                                                          │
+│  ├── useLayers()        ─────► GET /api/layers                          │
+│  └── useFeatures()      ─────► GET/PUT /api/features                    │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+## Main User Scenario
+
+**Goal**: User selects a CSV/GeoJSON file with geographic features and reviews them through the UI.
+
+### Workflow
+
+1. **Load Data**
+   - User places GeoJSON file in `data/layers/` directory
+   - User creates layer via API or seed script pointing to the file
+
+2. **Review on Map** (`/map`)
+   - Map displays all features from loaded layers
+   - User clicks a feature to select it
+   - Selected feature highlights on map
+   - User clicks Approve/Flag/Pending to set review status
+   - Status persists to SQLite database
+
+3. **Review in Table** (`/table`)
+   - Table shows all features with properties and current status
+   - User can sort/filter by status or properties
+   - User clicks status button to update review
+   - Changes sync with map view
+
+4. **Complete Review**
+   - All features marked as Approved or Flagged
+   - Export or further processing via API
+
+```
+┌──────────┐     ┌──────────┐     ┌──────────┐     ┌──────────┐
+│  Load    │────►│  View    │────►│  Review  │────►│  Export  │
+│  GeoJSON │     │  Map/    │     │  Each    │     │  Results │
+│          │     │  Table   │     │  Feature │     │          │
+└──────────┘     └──────────┘     └──────────┘     └──────────┘
+```
+
 ## Project Structure
 
 ```
