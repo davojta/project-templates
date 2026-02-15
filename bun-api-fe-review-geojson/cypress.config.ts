@@ -10,7 +10,7 @@ export default defineConfig({
       framework: 'react',
       bundler: 'vite',
       viteConfig: {
-        configFile: 'src/client/vite.config.ts',
+        configFile: 'cypress/vite.config.ts',
       },
     },
     specPattern: 'cypress/component/**/*.cy.tsx',

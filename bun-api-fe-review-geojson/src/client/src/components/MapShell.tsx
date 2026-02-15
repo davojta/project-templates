@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import type { GeoJSONFeature, FeatureReview } from '../../../types/index.js';
-import { MARKER_COLORS, MAP_CONFIG } from '../config.js';
+import { MARKER_COLORS, MAP_CONFIG, BASEMAPS } from '../config.js';
+import { BasemapSelector } from './BasemapSelector.js';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || '';
 
@@ -17,8 +18,72 @@ export function MapShell({ geojsonUrl, selectedFeature, onFeatureClick, reviews 
   const map = useRef<mapboxgl.Map | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [geojsonData, setGeojsonData] = useState<any>(null);
+  const [currentBasemapId, setCurrentBasemapId] = useState<string>(BASEMAPS[0].id);
   const initialBoundsSet = useRef(false);
   const currentGeojsonUrl = useRef<string | null>(null);
+
+  const addGeoJSONLayers = useCallback((data: any, flaggedIds: string[]) => {
+    if (!map.current) return;
+
+    const sourceId = 'geojson-data';
+    const layerId = 'geojson-layer';
+    const highlightLayerId = 'geojson-layer-highlight';
+
+    if (map.current.getSource(sourceId)) return;
+
+    map.current.addSource(sourceId, {
+      type: 'geojson',
+      data,
+    });
+
+    map.current.addLayer({
+      id: layerId,
+      type: 'circle',
+      source: sourceId,
+      paint: {
+        'circle-radius': MAP_CONFIG.markerRadius,
+        'circle-color': [
+          'match',
+          ['get', 'featureId'],
+          flaggedIds,
+          MARKER_COLORS.flagged,
+          MARKER_COLORS.notFlagged
+        ],
+        'circle-stroke-width': MAP_CONFIG.strokeWidth,
+        'circle-stroke-color': MAP_CONFIG.strokeColor,
+      },
+    });
+
+    map.current.addLayer({
+      id: highlightLayerId,
+      type: 'circle',
+      source: sourceId,
+      paint: {
+        'circle-radius': MAP_CONFIG.highlightRadius,
+        'circle-color': MARKER_COLORS.highlighted,
+        'circle-stroke-width': MAP_CONFIG.highlightStrokeWidth,
+        'circle-stroke-color': MAP_CONFIG.strokeColor,
+      },
+      filter: ['==', ['id'], ''],
+    });
+  }, []);
+
+  const handleBasemapChange = useCallback((styleUrl: string) => {
+    if (!map.current) return;
+
+    const basemap = BASEMAPS.find((b) => b.styleUrl === styleUrl);
+    if (!basemap) return;
+
+    setCurrentBasemapId(basemap.id);
+    map.current.setStyle(styleUrl);
+
+    map.current.once('style.load', () => {
+      if (geojsonData) {
+        const flaggedIds = reviews.filter((r) => r.isFlagged).map((r) => r.featureId);
+        addGeoJSONLayers(geojsonData, flaggedIds);
+      }
+    });
+  }, [geojsonData, reviews, addGeoJSONLayers]);
 
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
@@ -202,5 +267,10 @@ export function MapShell({ geojsonUrl, selectedFeature, onFeatureClick, reviews 
     }
   }, [selectedFeature, loaded]);
 
-  return <div ref={mapContainer} style={{ width: '100%', height: '600px' }} />;
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '600px' }}>
+      <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
+      <BasemapSelector currentBasemap={currentBasemapId} onBasemapChange={handleBasemapChange} />
+    </div>
+  );
 }

@@ -8,7 +8,9 @@ describe('MapShell Component', () => {
 
   it('should have correct dimensions', () => {
     cy.mount(<MapShell />);
-    cy.get('div').should('have.css', 'width', '100%');
-    cy.get('div').should('have.css', 'height', '600px');
+    cy.get('[data-cy-root] > div').first()
+      .should('have.attr', 'style')
+      .and('include', 'width: 100%')
+      .and('include', 'height: 600px');
   });
 });

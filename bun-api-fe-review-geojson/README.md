@@ -13,6 +13,102 @@ A full-stack template for building geodata review applications with Bun runtime,
 - **Zod validation**: Request/response validation with Zod schemas
 - **Testing**: Vitest for unit tests, Cypress for component and E2E tests
 
+## Data Flow
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                              Browser                                     │
+│  ┌───────────────┐    ┌───────────────┐    ┌───────────────────────┐   │
+│  │  MapShell     │    │  FeatureTable │    │  ReviewControls       │   │
+│  │  (mapbox-gl)  │    │  (MUI Table)  │    │  (status buttons)     │   │
+│  └───────┬───────┘    └───────┬───────┘    └───────────┬───────────┘   │
+│          │                    │                        │                │
+│          └────────────────────┼────────────────────────┘                │
+│                               ▼                                         │
+│                    ┌──────────────────────┐                             │
+│                    │  TanStack Query      │                             │
+│                    │  (useFeatures,       │                             │
+│                    │   useLayers)         │                             │
+│                    └──────────┬───────────┘                             │
+└───────────────────────────────┼─────────────────────────────────────────┘
+                                │ HTTP
+                                ▼
+┌───────────────────────────────────────────────────────────────────────────┐
+│                         Bun Server (Hono)                                 │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────────┐   │
+│  │  /api/layers    │    │  /api/features  │    │  /data/layers/*.json│   │
+│  │  (CRUD)         │    │  (review CRUD)  │    │  (static files)     │   │
+│  └────────┬────────┘    └────────┬────────┘    └─────────────────────┘   │
+│           │                      │                                        │
+│           └──────────┬───────────┘                                        │
+│                      ▼                                                    │
+│           ┌──────────────────────┐                                        │
+│           │  SQLite (db.ts)      │                                        │
+│           │  - layers table      │                                        │
+│           │  - reviews table     │                                        │
+│           └──────────────────────┘                                        │
+└───────────────────────────────────────────────────────────────────────────┘
+```
+
+## Component Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│  __root.tsx (TanStack Router)                                           │
+│  ├── QueryClientProvider                                                │
+│  └── Outlet                                                             │
+│       ├── index.tsx ("/")        ─────► Redirect to /map                │
+│       ├── map.tsx ("/map")                                              │
+│       │    ├── MapShell          ─────► Mapbox GL map container         │
+│       │    │    └── mapbox-gl         Feature visualization             │
+│       │    ├── LayerToggle       ─────► Layer visibility controls       │
+│       │    └── ReviewControls    ─────► Approve/Flag/Pending buttons    │
+│       │                                                                 │
+│       └── table.tsx ("/table")                                          │
+│            ├── FeatureTable      ─────► MUI DataGrid for features       │
+│            └── ReviewControls    ─────► Inline status updates           │
+│                                                                         │
+│  Shared Hooks:                                                          │
+│  ├── useLayers()        ─────► GET /api/layers                          │
+│  └── useFeatures()      ─────► GET/PUT /api/features                    │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+## Main User Scenario
+
+**Goal**: User selects a CSV/GeoJSON file with geographic features and reviews them through the UI.
+
+### Workflow
+
+1. **Load Data**
+   - User places GeoJSON file in `data/layers/` directory
+   - User creates layer via API or seed script pointing to the file
+
+2. **Review on Map** (`/map`)
+   - Map displays all features from loaded layers
+   - User clicks a feature to select it
+   - Selected feature highlights on map
+   - User clicks Approve/Flag/Pending to set review status
+   - Status persists to SQLite database
+
+3. **Review in Table** (`/table`)
+   - Table shows all features with properties and current status
+   - User can sort/filter by status or properties
+   - User clicks status button to update review
+   - Changes sync with map view
+
+4. **Complete Review**
+   - All features marked as Approved or Flagged
+   - Export or further processing via API
+
+```
+┌──────────┐     ┌──────────┐     ┌──────────┐     ┌──────────┐
+│  Load    │────►│  View    │────►│  Review  │────►│  Export  │
+│  GeoJSON │     │  Map/    │     │  Each    │     │  Results │
+│          │     │  Table   │     │  Feature │     │          │
+└──────────┘     └──────────┘     └──────────┘     └──────────┘
+```
+
 ## Project Structure
 
 ```
@@ -317,6 +413,98 @@ If port 3000 is in use, change it in `.env`:
 
 ```
 PORT=4000
+```
+
+## Browser Automation
+
+The app can be driven from the terminal using CLI browser automation tools, useful for scripted testing or AI-agent workflows.
+
+### playwright-cli (recommended)
+
+[@playwright/cli](https://www.npmjs.com/package/@playwright/cli) — first-party Playwright CLI for AI agents. Persistent browser session, accessibility snapshots with element refs.
+
+```bash
+npm install -g @playwright/cli
+
+playwright-cli open http://localhost:5174
+playwright-cli snapshot                    # accessibility tree with refs (e1, e2, ...)
+playwright-cli click e23                   # click by ref
+playwright-cli screenshot                  # saves to .playwright-cli/
+playwright-cli close
+```
+
+### agent-browser
+
+[agent-browser](https://github.com/vercel-labs/agent-browser) — Vercel's Playwright-based CLI for AI agents. Similar ref-based workflow.
+
+```bash
+npm install -g agent-browser
+agent-browser install
+
+agent-browser open http://localhost:5174
+agent-browser snapshot                    # accessibility tree with @refs
+agent-browser click @e12                  # click by ref
+agent-browser screenshot review.png
+agent-browser close
+```
+
+### rodney
+
+[rodney](https://github.com/simonw/rodney) — Go/rod-based CLI for general browser automation. Uses CSS selectors and JS evaluation.
+
+```bash
+go install github.com/simonw/rodney@latest
+
+rodney start
+rodney open http://localhost:5174
+rodney js '[...document.querySelectorAll("button")].find(b => b.textContent.includes("Forward")).click()'
+rodney screenshot review.png
+rodney stop
+```
+
+### Authenticated sessions (playwright-cli)
+
+For corporate websites behind SSO/OAuth, use `--headed` to log in manually, then save the session:
+
+```bash
+# Open headed browser and log in manually
+playwright-cli open https://corporate.example.com --headed
+# ... complete SSO/MFA login in the browser ...
+
+# Save auth state (cookies, localStorage, sessionStorage)
+playwright-cli state-save auth.json
+
+# Later, restore the session — no login needed
+playwright-cli state-load auth.json
+playwright-cli open https://corporate.example.com
+```
+
+### Showboat demo document
+
+[Showboat](https://github.com/simonw/showboat) creates executable demo documents that capture browser interactions with screenshots. See [showboat.md](showboat.md) for an example that clicks the Forward button with before/after screenshots.
+
+To run it:
+
+```bash
+# Install
+uvx showboat --version
+
+# Verify the demo (re-runs all commands and checks outputs match)
+uvx showboat verify showboat.md
+
+# Recreate from scratch
+uvx showboat extract showboat.md
+```
+
+To build a new demo:
+
+```bash
+uvx showboat init demo.md "My Demo"
+uvx showboat note demo.md "Open the app."
+uvx showboat exec demo.md bash "playwright-cli open http://localhost:5174"
+uvx showboat exec demo.md bash "playwright-cli screenshot"
+uvx showboat image demo.md "![Screenshot](.playwright-cli/page-*.png)"
+uvx showboat exec demo.md bash "playwright-cli close"
 ```
 
 ## License
