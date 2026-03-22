@@ -1,7 +1,13 @@
-import { createRootRouteWithContext, Link, Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
-import { useEffect, useRef } from 'react';
-import type { QueryClient } from '@tanstack/react-query';
-import { initAppInspect } from '../appInspect.js';
+import {
+  createRootRouteWithContext,
+  Link,
+  Outlet,
+  useNavigate,
+  useRouterState,
+} from "@tanstack/react-router";
+import { useEffect, useRef } from "react";
+import type { QueryClient } from "@tanstack/react-query";
+import { initAppInspect } from "../appInspect.js";
 
 interface RouterContext {
   queryClient: QueryClient;
@@ -20,7 +26,7 @@ function RootComponent() {
   useEffect(() => {
     initAppInspect(
       (page) => navigate({ to: `/${page}` }),
-      () => pathnameRef.current.replace(/^\//, '') || 'map',
+      () => pathnameRef.current.replace(/^\//, "") || "map",
     );
     return () => {
       delete window.__appInspect;
@@ -28,25 +34,34 @@ function RootComponent() {
   }, [navigate]);
 
   return (
-    <div style={{ fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ fontFamily: "system-ui, sans-serif" }}>
       <nav
         data-testid="main-nav"
         aria-label="main-nav"
         role="navigation"
         style={{
-          padding: '1rem',
-          borderBottom: '1px solid #ccc',
-          display: 'flex',
-          gap: '1rem',
-          backgroundColor: '#f5f5f5',
+          padding: "1rem",
+          borderBottom: "1px solid #ccc",
+          display: "flex",
+          gap: "1rem",
+          backgroundColor: "#f5f5f5",
         }}
       >
+        <Link
+          to="/input"
+          data-testid="nav-input"
+          aria-label="nav-input"
+          style={{ textDecoration: "none", color: "#0066cc" }}
+          activeProps={{ style: { fontWeight: "bold" } }}
+        >
+          Input
+        </Link>
         <Link
           to="/map"
           data-testid="nav-map"
           aria-label="nav-map"
-          style={{ textDecoration: 'none', color: '#0066cc' }}
-          activeProps={{ style: { fontWeight: 'bold' } }}
+          style={{ textDecoration: "none", color: "#0066cc" }}
+          activeProps={{ style: { fontWeight: "bold" } }}
         >
           Map View
         </Link>
@@ -54,8 +69,8 @@ function RootComponent() {
           to="/table"
           data-testid="nav-table"
           aria-label="nav-table"
-          style={{ textDecoration: 'none', color: '#0066cc' }}
-          activeProps={{ style: { fontWeight: 'bold' } }}
+          style={{ textDecoration: "none", color: "#0066cc" }}
+          activeProps={{ style: { fontWeight: "bold" } }}
         >
           Table View
         </Link>
@@ -63,8 +78,8 @@ function RootComponent() {
           to="/results"
           data-testid="nav-results"
           aria-label="nav-results"
-          style={{ textDecoration: 'none', color: '#0066cc' }}
-          activeProps={{ style: { fontWeight: 'bold' } }}
+          style={{ textDecoration: "none", color: "#0066cc" }}
+          activeProps={{ style: { fontWeight: "bold" } }}
         >
           Results
         </Link>

@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const layerSchema = z.object({
   id: z.string().min(1),
@@ -10,9 +10,10 @@ export const layerSchema = z.object({
 
 export const createLayerSchema = z.object({
   name: z.string().min(1),
-  url: z.string().url(),
+  url: z.string().min(1),
   visible: z.boolean().default(true),
   color: z.string().optional(),
+  source_hash: z.string().optional(),
 });
 
 export const updateLayerSchema = z.object({

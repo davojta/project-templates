@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
-import mapboxgl from 'mapbox-gl';
-import type { GeoJSONFeature, FeatureReview } from '../../../types/index.js';
-import { MARKER_COLORS, MAP_CONFIG, BASEMAPS } from '../config.js';
-import { BasemapSelector } from './BasemapSelector.js';
-import { FeatureDetails } from './FeatureDetails.js';
+import { useEffect, useRef, useState, useCallback } from "react";
+import mapboxgl from "mapbox-gl";
+import type { GeoJSONFeature, FeatureReview } from "../../../types/index.js";
+import { MARKER_COLORS, MAP_CONFIG, BASEMAPS } from "../config.js";
+import { BasemapSelector } from "./BasemapSelector.js";
+import { FeatureDetails } from "./FeatureDetails.js";
+import { fetchGeoJSON } from "../lib/fetchGeoJSON.js";
 
 interface ViewportQueryOptions {
   layers: string[];
@@ -17,17 +18,29 @@ interface ViewportQueryResult {
 }
 
 interface MapInspectResult {
-  status: 'ok' | 'error';
+  status: "ok" | "error";
   timestamp: string;
-  camera: { center: [number, number]; zoom: number; bearing: number; pitch: number };
+  camera: {
+    center: [number, number];
+    zoom: number;
+    bearing: number;
+    pitch: number;
+  };
   layers: { id: string; type: string; visible: boolean }[];
   queries: ViewportQueryResult[];
   error?: string;
 }
 
 interface MapInspectAPI {
-  verify: (opts: { queries: { name: string; method: string; options: ViewportQueryOptions }[] }) => Promise<MapInspectResult>;
-  getCamera: () => { center: [number, number]; zoom: number; bearing: number; pitch: number } | null;
+  verify: (opts: {
+    queries: { name: string; method: string; options: ViewportQueryOptions }[];
+  }) => Promise<MapInspectResult>;
+  getCamera: () => {
+    center: [number, number];
+    zoom: number;
+    bearing: number;
+    pitch: number;
+  } | null;
   getLayers: () => { id: string; type: string; visible: boolean }[];
 }
 
@@ -37,7 +50,7 @@ declare global {
   }
 }
 
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || '';
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || "";
 
 interface MapShellProps {
   geojsonUrl?: string;
@@ -47,90 +60,103 @@ interface MapShellProps {
   currentFeature?: GeoJSONFeature | null;
 }
 
-export function MapShell({ geojsonUrl, selectedFeature, onFeatureClick, reviews = [], currentFeature }: MapShellProps) {
+export function MapShell({
+  geojsonUrl,
+  selectedFeature,
+  onFeatureClick,
+  reviews = [],
+  currentFeature,
+}: MapShellProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [geojsonData, setGeojsonData] = useState<any>(null);
-  const [currentBasemapId, setCurrentBasemapId] = useState<string>(BASEMAPS[0].id);
+  const [currentBasemapId, setCurrentBasemapId] = useState<string>(
+    BASEMAPS[0].id,
+  );
   const initialBoundsSet = useRef(false);
   const currentGeojsonUrl = useRef<string | null>(null);
 
   const addGeoJSONLayers = useCallback((data: any, flaggedIds: string[]) => {
     if (!map.current) return;
 
-    const sourceId = 'geojson-data';
-    const layerId = 'geojson-layer';
-    const highlightLayerId = 'geojson-layer-highlight';
+    const sourceId = "geojson-data";
+    const layerId = "geojson-layer";
+    const highlightLayerId = "geojson-layer-highlight";
 
     if (map.current.getSource(sourceId)) return;
 
     map.current.addSource(sourceId, {
-      type: 'geojson',
+      type: "geojson",
       data,
     });
 
     map.current.addLayer({
       id: layerId,
-      type: 'circle',
+      type: "circle",
       source: sourceId,
       paint: {
-        'circle-radius': MAP_CONFIG.markerRadius,
-        'circle-color': [
-          'match',
-          ['get', 'featureId'],
+        "circle-radius": MAP_CONFIG.markerRadius,
+        "circle-color": [
+          "match",
+          ["get", "featureId"],
           flaggedIds,
           MARKER_COLORS.flagged,
-          MARKER_COLORS.notFlagged
+          MARKER_COLORS.notFlagged,
         ],
-        'circle-stroke-width': MAP_CONFIG.strokeWidth,
-        'circle-stroke-color': MAP_CONFIG.strokeColor,
+        "circle-stroke-width": MAP_CONFIG.strokeWidth,
+        "circle-stroke-color": MAP_CONFIG.strokeColor,
       },
     });
 
     map.current.addLayer({
       id: highlightLayerId,
-      type: 'circle',
+      type: "circle",
       source: sourceId,
       paint: {
-        'circle-radius': MAP_CONFIG.highlightRadius,
-        'circle-color': MARKER_COLORS.highlighted,
-        'circle-stroke-width': MAP_CONFIG.highlightStrokeWidth,
-        'circle-stroke-color': MAP_CONFIG.strokeColor,
+        "circle-radius": MAP_CONFIG.highlightRadius,
+        "circle-color": MARKER_COLORS.highlighted,
+        "circle-stroke-width": MAP_CONFIG.highlightStrokeWidth,
+        "circle-stroke-color": MAP_CONFIG.strokeColor,
       },
-      filter: ['==', ['id'], ''],
+      filter: ["==", ["id"], ""],
     });
   }, []);
 
-  const handleBasemapChange = useCallback((styleUrl: string) => {
-    if (!map.current) return;
+  const handleBasemapChange = useCallback(
+    (styleUrl: string) => {
+      if (!map.current) return;
 
-    const basemap = BASEMAPS.find((b) => b.styleUrl === styleUrl);
-    if (!basemap) return;
+      const basemap = BASEMAPS.find((b) => b.styleUrl === styleUrl);
+      if (!basemap) return;
 
-    setCurrentBasemapId(basemap.id);
-    map.current.setStyle(styleUrl);
+      setCurrentBasemapId(basemap.id);
+      map.current.setStyle(styleUrl);
 
-    map.current.once('style.load', () => {
-      if (geojsonData) {
-        const flaggedIds = reviews.filter((r) => r.isFlagged).map((r) => r.featureId);
-        addGeoJSONLayers(geojsonData, flaggedIds);
-      }
-    });
-  }, [geojsonData, reviews, addGeoJSONLayers]);
+      map.current.once("style.load", () => {
+        if (geojsonData) {
+          const flaggedIds = reviews
+            .filter((r) => r.isFlagged)
+            .map((r) => r.featureId);
+          addGeoJSONLayers(geojsonData, flaggedIds);
+        }
+      });
+    },
+    [geojsonData, reviews, addGeoJSONLayers],
+  );
 
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
+      style: "mapbox://styles/mapbox/streets-v12",
       center: [0, 0],
       zoom: 2,
       keyboard: false,
     });
 
-    map.current.on('load', () => setLoaded(true));
+    map.current.on("load", () => setLoaded(true));
 
     return () => {
       map.current?.remove();
@@ -159,7 +185,7 @@ export function MapShell({ geojsonUrl, selectedFeature, onFeatureClick, reviews 
       return style.layers.map((l) => ({
         id: l.id,
         type: l.type,
-        visible: m.getLayoutProperty(l.id, 'visibility') !== 'none',
+        visible: m.getLayoutProperty(l.id, "visibility") !== "none",
       }));
     };
 
@@ -173,7 +199,7 @@ export function MapShell({ geojsonUrl, selectedFeature, onFeatureClick, reviews 
           const results: ViewportQueryResult[] = [];
 
           for (const q of queries) {
-            if (q.method === 'viewport') {
+            if (q.method === "viewport") {
               const limit = q.options.limit ?? 100;
               const renderedFeatures = m.queryRenderedFeatures({
                 layers: q.options.layers,
@@ -191,10 +217,16 @@ export function MapShell({ geojsonUrl, selectedFeature, onFeatureClick, reviews 
             }
           }
 
-          return { status: 'ok', timestamp: new Date().toISOString(), camera, layers, queries: results };
+          return {
+            status: "ok",
+            timestamp: new Date().toISOString(),
+            camera,
+            layers,
+            queries: results,
+          };
         } catch (err) {
           return {
-            status: 'error',
+            status: "error",
             timestamp: new Date().toISOString(),
             camera: getCamera(),
             layers: getLayers(),
@@ -213,9 +245,9 @@ export function MapShell({ geojsonUrl, selectedFeature, onFeatureClick, reviews 
   useEffect(() => {
     if (!map.current || !loaded || !geojsonUrl) return;
 
-    const sourceId = 'geojson-data';
-    const layerId = 'geojson-layer';
-    const highlightLayerId = 'geojson-layer-highlight';
+    const sourceId = "geojson-data";
+    const layerId = "geojson-layer";
+    const highlightLayerId = "geojson-layer-highlight";
 
     if (currentGeojsonUrl.current === geojsonUrl) {
       const flaggedIds = reviews
@@ -223,12 +255,12 @@ export function MapShell({ geojsonUrl, selectedFeature, onFeatureClick, reviews 
         .map((r) => r.featureId);
 
       if (map.current.getLayer(layerId)) {
-        map.current.setPaintProperty(layerId, 'circle-color', [
-          'match',
-          ['get', 'featureId'],
+        map.current.setPaintProperty(layerId, "circle-color", [
+          "match",
+          ["get", "featureId"],
           flaggedIds,
           MARKER_COLORS.flagged,
-          MARKER_COLORS.notFlagged
+          MARKER_COLORS.notFlagged,
         ]);
       }
       return;
@@ -254,81 +286,79 @@ export function MapShell({ geojsonUrl, selectedFeature, onFeatureClick, reviews 
     };
 
     const handleMouseEnter = () => {
-      if (map.current) map.current.getCanvas().style.cursor = 'pointer';
+      if (map.current) map.current.getCanvas().style.cursor = "pointer";
     };
 
     const handleMouseLeave = () => {
-      if (map.current) map.current.getCanvas().style.cursor = '';
+      if (map.current) map.current.getCanvas().style.cursor = "";
     };
 
-    fetch(geojsonUrl)
-      .then((res) => res.json())
-      .then((data) => {
-        if (!map.current) return;
+    fetchGeoJSON(geojsonUrl).then((data) => {
+      if (!map.current) return;
 
-        const dataWithIds = {
-          ...data,
-          features: data.features.map((f: any) => ({
-            ...f,
-            properties: {
-              ...f.properties,
-              featureId: f.id,
-            },
-          })),
-        };
-
-        setGeojsonData(dataWithIds);
-
-        const flaggedIds = reviews
-          .filter((r) => r.isFlagged)
-          .map((r) => r.featureId);
-
-        map.current.addSource(sourceId, {
-          type: 'geojson',
-          data: dataWithIds,
-        });
-
-        map.current.addLayer({
-          id: layerId,
-          type: 'circle',
-          source: sourceId,
-          paint: {
-            'circle-radius': MAP_CONFIG.markerRadius,
-            'circle-color': [
-              'match',
-              ['get', 'featureId'],
-              flaggedIds,
-              MARKER_COLORS.flagged,
-              MARKER_COLORS.notFlagged
-            ],
-            'circle-stroke-width': MAP_CONFIG.strokeWidth,
-            'circle-stroke-color': MAP_CONFIG.strokeColor,
+      const dataWithIds = {
+        ...data,
+        features: data.features.map((f: any) => ({
+          ...f,
+          properties: {
+            ...f.properties,
+            featureId: f.id,
           },
-        });
+        })),
+      };
 
-        map.current.addLayer({
-          id: highlightLayerId,
-          type: 'circle',
-          source: sourceId,
-          paint: {
-            'circle-radius': MAP_CONFIG.highlightRadius,
-            'circle-color': MARKER_COLORS.highlighted,
-            'circle-stroke-width': MAP_CONFIG.highlightStrokeWidth,
-            'circle-stroke-color': MAP_CONFIG.strokeColor,
-          },
-          filter: ['==', ['id'], ''],
-        });
+      setGeojsonData(dataWithIds);
 
-        map.current.on('click', layerId, handleClick);
-        map.current.on('mouseenter', layerId, handleMouseEnter);
-        map.current.on('mouseleave', layerId, handleMouseLeave);
+      const flaggedIds = reviews
+        .filter((r) => r.isFlagged)
+        .map((r) => r.featureId);
+
+      map.current.addSource(sourceId, {
+        type: "geojson",
+        data: dataWithIds,
       });
+
+      map.current.addLayer({
+        id: layerId,
+        type: "circle",
+        source: sourceId,
+        paint: {
+          "circle-radius": MAP_CONFIG.markerRadius,
+          "circle-color": [
+            "match",
+            ["get", "featureId"],
+            flaggedIds,
+            MARKER_COLORS.flagged,
+            MARKER_COLORS.notFlagged,
+          ],
+          "circle-stroke-width": MAP_CONFIG.strokeWidth,
+          "circle-stroke-color": MAP_CONFIG.strokeColor,
+        },
+      });
+
+      map.current.addLayer({
+        id: highlightLayerId,
+        type: "circle",
+        source: sourceId,
+        paint: {
+          "circle-radius": MAP_CONFIG.highlightRadius,
+          "circle-color": MARKER_COLORS.highlighted,
+          "circle-stroke-width": MAP_CONFIG.highlightStrokeWidth,
+          "circle-stroke-color": MAP_CONFIG.strokeColor,
+        },
+        filter: ["==", ["id"], ""],
+      });
+
+      map.current.on("click", layerId, handleClick);
+      map.current.on("mouseenter", layerId, handleMouseEnter);
+      map.current.on("mouseleave", layerId, handleMouseLeave);
+    });
 
     return () => {
       if (map.current) {
-        map.current.off('click', layerId, handleClick);
-        map.current.off('mouseenter', layerId, handleMouseEnter);
-        map.current.off('mouseleave', layerId, handleMouseLeave);
+        map.current.off("click", layerId, handleClick);
+        map.current.off("mouseenter", layerId, handleMouseEnter);
+        map.current.off("mouseleave", layerId, handleMouseLeave);
       }
     };
   }, [geojsonUrl, loaded, reviews]);
@@ -336,32 +366,36 @@ export function MapShell({ geojsonUrl, selectedFeature, onFeatureClick, reviews 
   useEffect(() => {
     if (!map.current || !loaded) return;
 
-    const layerId = 'geojson-layer';
+    const layerId = "geojson-layer";
     if (!map.current.getLayer(layerId)) return;
 
     const flaggedIds = reviews
       .filter((r) => r.isFlagged)
       .map((r) => r.featureId);
 
-    map.current.setPaintProperty(layerId, 'circle-color', [
-      'match',
-      ['get', 'featureId'],
+    map.current.setPaintProperty(layerId, "circle-color", [
+      "match",
+      ["get", "featureId"],
       flaggedIds,
       MARKER_COLORS.flagged,
-      MARKER_COLORS.notFlagged
+      MARKER_COLORS.notFlagged,
     ]);
   }, [reviews, loaded]);
 
   useEffect(() => {
     if (!map.current || !loaded || !selectedFeature) return;
 
-    const highlightLayerId = 'geojson-layer-highlight';
+    const highlightLayerId = "geojson-layer-highlight";
 
     if (map.current.getLayer(highlightLayerId)) {
-      map.current.setFilter(highlightLayerId, ['==', ['id'], selectedFeature.id]);
+      map.current.setFilter(highlightLayerId, [
+        "==",
+        ["id"],
+        selectedFeature.id,
+      ]);
     }
 
-    if (selectedFeature.geometry.type === 'Point') {
+    if (selectedFeature.geometry.type === "Point") {
       const coords = selectedFeature.geometry.coordinates as [number, number];
       const bounds = new mapboxgl.LngLatBounds();
       bounds.extend(coords);
@@ -369,15 +403,28 @@ export function MapShell({ geojsonUrl, selectedFeature, onFeatureClick, reviews 
       map.current.fitBounds(bounds, {
         padding: MAP_CONFIG.padding,
         maxZoom: MAP_CONFIG.defaultZoom,
-        duration: 0
+        duration: 0,
       });
     }
   }, [selectedFeature, loaded]);
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '600px' }} data-testid="map-shell" aria-label="map-shell">
-      <div ref={mapContainer} style={{ width: '100%', height: '100%' }} data-testid="map-container" role="application" aria-label="map-container" />
-      <BasemapSelector currentBasemap={currentBasemapId} onBasemapChange={handleBasemapChange} />
+    <div
+      style={{ position: "relative", width: "100%", height: "600px" }}
+      data-testid="map-shell"
+      aria-label="map-shell"
+    >
+      <div
+        ref={mapContainer}
+        style={{ width: "100%", height: "100%" }}
+        data-testid="map-container"
+        role="application"
+        aria-label="map-container"
+      />
+      <BasemapSelector
+        currentBasemap={currentBasemapId}
+        onBasemapChange={handleBasemapChange}
+      />
       {currentFeature && <FeatureDetails feature={currentFeature} />}
     </div>
   );

@@ -1,14 +1,15 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { MapShell } from '../components/MapShell';
-import { ReviewControls } from '../components/ReviewControls';
-import { LayerToggle } from '../components/LayerToggle';
-import { useLayers, useUpdateLayer } from '../hooks/useLayers';
-import { useUpdateFeatureReview, useLayerReviews } from '../hooks/useFeatures';
-import type { GeoJSONFeature, GeoJSONFeatureCollection } from '../../../types/index.js';
-import type { AppInspectMapAPI } from '../appInspect.js';
+import { createFileRoute } from "@tanstack/react-router";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { MapShell } from "../components/MapShell";
+import { ReviewControls } from "../components/ReviewControls";
+import { LayerToggle } from "../components/LayerToggle";
+import { useLayers, useUpdateLayer } from "../hooks/useLayers";
+import { useUpdateFeatureReview, useLayerReviews } from "../hooks/useFeatures";
+import type { GeoJSONFeature } from "../../../types/index.js";
+import type { AppInspectMapAPI } from "../appInspect.js";
+import { fetchGeoJSON } from "../lib/fetchGeoJSON.js";
 
-export const Route = createFileRoute('/map')({
+export const Route = createFileRoute("/map")({
   component: MapComponent,
 });
 
@@ -21,12 +22,12 @@ function MapComponent() {
   const [currentFeatureIndex, setCurrentFeatureIndex] = useState(0);
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
   const [noteOpen, setNoteOpen] = useState(false);
-  const [noteValue, setNoteValue] = useState('');
+  const [noteValue, setNoteValue] = useState("");
   const [noteSubmitted, setNoteSubmitted] = useState(false);
-  const noteRef = useRef({ value: '', open: false, submitted: false });
+  const noteRef = useRef({ value: "", open: false, submitted: false });
 
   const currentLayer = layers.find((l) => l.visible);
-  const { data: reviewsData } = useLayerReviews(currentLayer?.id || '');
+  const { data: reviewsData } = useLayerReviews(currentLayer?.id || "");
   const reviews = Array.isArray(reviewsData) ? reviewsData : [];
 
   useEffect(() => {
@@ -37,9 +38,8 @@ function MapComponent() {
 
     setSelectedLayerId(currentLayer.id);
 
-    fetch(currentLayer.url)
-      .then((res) => res.json())
-      .then((data: GeoJSONFeatureCollection) => {
+    fetchGeoJSON(currentLayer.url)
+      .then((data) => {
         const featuresWithIds = data.features.map((f, i) => ({
           ...f,
           id: f.id || i,
@@ -58,7 +58,9 @@ function MapComponent() {
   };
 
   const currentFeature = features[currentFeatureIndex];
-  const currentReview = reviews.find((r) => r.featureId === String(currentFeature?.id));
+  const currentReview = reviews.find(
+    (r) => r.featureId === String(currentFeature?.id),
+  );
   const isFlagged = currentReview?.isFlagged || false;
 
   const handleFlag = useCallback(() => {
@@ -103,9 +105,9 @@ function MapComponent() {
 
   const resetNote = useCallback(() => {
     setNoteOpen(false);
-    setNoteValue('');
+    setNoteValue("");
     setNoteSubmitted(false);
-    noteRef.current = { value: '', open: false, submitted: false };
+    noteRef.current = { value: "", open: false, submitted: false };
   }, []);
 
   const handleNoteChange = useCallback((value: string) => {
@@ -142,10 +144,10 @@ function MapComponent() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLTextAreaElement) {
-        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
           submitNote();
           (e.target as HTMLTextAreaElement).blur();
-          if (e.key === 'ArrowLeft') handleBack();
+          if (e.key === "ArrowLeft") handleBack();
           else handleForward();
           return;
         }
@@ -154,11 +156,21 @@ function MapComponent() {
       if (e.target instanceof HTMLInputElement) return;
 
       switch (e.key) {
-        case 'ArrowRight': handleForward(); break;
-        case 'ArrowLeft': handleBack(); break;
-        case 'ArrowUp': e.preventDefault(); handleFlag(); break;
-        case 'ArrowDown': e.preventDefault(); handleUnflag(); break;
-        case 'n': {
+        case "ArrowRight":
+          handleForward();
+          break;
+        case "ArrowLeft":
+          handleBack();
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          handleFlag();
+          break;
+        case "ArrowDown":
+          e.preventDefault();
+          handleUnflag();
+          break;
+        case "n": {
           if (!noteOpen) {
             setNoteOpen(true);
             noteRef.current.open = true;
@@ -168,9 +180,16 @@ function MapComponent() {
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleForward, handleBack, handleFlag, handleUnflag, noteOpen, submitNote]);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    handleForward,
+    handleBack,
+    handleFlag,
+    handleUnflag,
+    noteOpen,
+    submitNote,
+  ]);
 
   useEffect(() => {
     if (!window.__appInspect) return;
@@ -215,10 +234,16 @@ function MapComponent() {
     return () => {
       if (window.__appInspect) window.__appInspect.map = null;
     };
-  }, [currentFeatureIndex, features, currentFeature, isFlagged, selectedLayerId]);
+  }, [
+    currentFeatureIndex,
+    features,
+    currentFeature,
+    isFlagged,
+    selectedLayerId,
+  ]);
 
   if (isLoading) {
-    return <div style={{ padding: '2rem' }}>Loading...</div>;
+    return <div style={{ padding: "2rem" }}>Loading...</div>;
   }
 
   return (
@@ -226,7 +251,11 @@ function MapComponent() {
       <LayerToggle
         layers={layers}
         onToggle={handleToggleLayer}
-        featureCounter={features.length > 0 ? `Feature ${currentFeatureIndex + 1} of ${features.length}` : undefined}
+        featureCounter={
+          features.length > 0
+            ? `Feature ${currentFeatureIndex + 1} of ${features.length}`
+            : undefined
+        }
       />
       {currentLayer ? (
         <>
@@ -257,7 +286,7 @@ function MapComponent() {
           />
         </>
       ) : (
-        <div style={{ padding: '2rem', textAlign: 'center' }}>
+        <div style={{ padding: "2rem", textAlign: "center" }}>
           No visible layers. Please enable a layer from the toggle above.
         </div>
       )}

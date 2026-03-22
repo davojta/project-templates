@@ -1,7 +1,7 @@
-import { Database } from 'bun:sqlite';
-import type { Layer, FeatureReview } from '../types/index.js';
+import { Database } from "bun:sqlite";
+import type { Layer, FeatureReview } from "../types/index.js";
 
-export const db = new Database('db.sqlite', { create: true });
+export const db = new Database("db.sqlite", { create: true });
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS layers (
@@ -32,29 +32,42 @@ try {
   // column already exists
 }
 
+try {
+  db.exec(`ALTER TABLE layers ADD COLUMN source_hash TEXT`);
+} catch {
+  // column already exists
+}
+
 export const layerQueries = {
-  getAll: db.query<Layer, []>('SELECT * FROM layers'),
+  getAll: db.query<Layer, []>("SELECT * FROM layers"),
 
-  getById: db.query<Layer, [string]>('SELECT * FROM layers WHERE id = ?'),
+  getById: db.query<Layer, [string]>("SELECT * FROM layers WHERE id = ?"),
 
-  create: db.query<Layer, [string, string, string, number, string | null]>(
-    'INSERT INTO layers (id, name, url, visible, color) VALUES (?, ?, ?, ?, ?) RETURNING *'
+  create: db.query<
+    Layer,
+    [string, string, string, number, string | null, string | null]
+  >(
+    "INSERT INTO layers (id, name, url, visible, color, source_hash) VALUES (?, ?, ?, ?, ?, ?) RETURNING *",
   ),
 
   update: db.query<Layer, [string, string, number, string | null, string]>(
-    'UPDATE layers SET name = ?, url = ?, visible = ?, color = ? WHERE id = ? RETURNING *'
+    "UPDATE layers SET name = ?, url = ?, visible = ?, color = ? WHERE id = ? RETURNING *",
   ),
 
-  delete: db.query<void, [string]>('DELETE FROM layers WHERE id = ?'),
+  getByHash: db.query<Layer, [string]>(
+    "SELECT * FROM layers WHERE source_hash = ?",
+  ),
+
+  delete: db.query<void, [string]>("DELETE FROM layers WHERE id = ?"),
 };
 
 export const featureReviewQueries = {
   getByFeatureId: db.query<FeatureReview, [string, string]>(
-    'SELECT feature_id as featureId, layer_id as layerId, is_flagged as isFlagged, reviewed_at as reviewedAt, note FROM feature_reviews WHERE feature_id = ? AND layer_id = ?'
+    "SELECT feature_id as featureId, layer_id as layerId, is_flagged as isFlagged, reviewed_at as reviewedAt, note FROM feature_reviews WHERE feature_id = ? AND layer_id = ?",
   ),
 
   getByLayerId: db.query<FeatureReview, [string]>(
-    'SELECT feature_id as featureId, layer_id as layerId, is_flagged as isFlagged, reviewed_at as reviewedAt, note FROM feature_reviews WHERE layer_id = ?'
+    "SELECT feature_id as featureId, layer_id as layerId, is_flagged as isFlagged, reviewed_at as reviewedAt, note FROM feature_reviews WHERE layer_id = ?",
   ),
 
   upsert: db.query<FeatureReview, [string, string, number, string, string]>(
@@ -64,6 +77,6 @@ export const featureReviewQueries = {
        is_flagged = excluded.is_flagged,
        reviewed_at = excluded.reviewed_at,
        note = excluded.note
-     RETURNING feature_id as featureId, layer_id as layerId, is_flagged as isFlagged, reviewed_at as reviewedAt, note`
+     RETURNING feature_id as featureId, layer_id as layerId, is_flagged as isFlagged, reviewed_at as reviewedAt, note`,
   ),
 };

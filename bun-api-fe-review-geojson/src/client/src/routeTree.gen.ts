@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TableRouteImport } from './routes/table'
 import { Route as ResultsRouteImport } from './routes/results'
 import { Route as MapRouteImport } from './routes/map'
+import { Route as InputRouteImport } from './routes/input'
 import { Route as IndexRouteImport } from './routes/index'
 
 const TableRoute = TableRouteImport.update({
@@ -29,6 +30,11 @@ const MapRoute = MapRouteImport.update({
   path: '/map',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InputRoute = InputRouteImport.update({
+  id: '/input',
+  path: '/input',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -37,12 +43,14 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/input': typeof InputRoute
   '/map': typeof MapRoute
   '/results': typeof ResultsRoute
   '/table': typeof TableRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/input': typeof InputRoute
   '/map': typeof MapRoute
   '/results': typeof ResultsRoute
   '/table': typeof TableRoute
@@ -50,20 +58,22 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/input': typeof InputRoute
   '/map': typeof MapRoute
   '/results': typeof ResultsRoute
   '/table': typeof TableRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/map' | '/results' | '/table'
+  fullPaths: '/' | '/input' | '/map' | '/results' | '/table'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/map' | '/results' | '/table'
-  id: '__root__' | '/' | '/map' | '/results' | '/table'
+  to: '/' | '/input' | '/map' | '/results' | '/table'
+  id: '__root__' | '/' | '/input' | '/map' | '/results' | '/table'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  InputRoute: typeof InputRoute
   MapRoute: typeof MapRoute
   ResultsRoute: typeof ResultsRoute
   TableRoute: typeof TableRoute
@@ -92,6 +102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MapRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/input': {
+      id: '/input'
+      path: '/input'
+      fullPath: '/input'
+      preLoaderRoute: typeof InputRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -104,6 +121,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  InputRoute: InputRoute,
   MapRoute: MapRoute,
   ResultsRoute: ResultsRoute,
   TableRoute: TableRoute,

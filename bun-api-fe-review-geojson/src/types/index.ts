@@ -4,6 +4,12 @@ export interface Layer {
   url: string;
   visible: boolean;
   color?: string;
+  source_hash?: string;
+}
+
+export interface ExportInfo {
+  current: string | null;
+  archive: string[];
 }
 
 export interface FeatureReview {
@@ -15,7 +21,7 @@ export interface FeatureReview {
 }
 
 export interface GeoJSONFeature {
-  type: 'Feature';
+  type: "Feature";
   geometry: {
     type: string;
     coordinates: number[] | number[][] | number[][][];
@@ -25,7 +31,7 @@ export interface GeoJSONFeature {
 }
 
 export interface GeoJSONFeatureCollection {
-  type: 'FeatureCollection';
+  type: "FeatureCollection";
   features: GeoJSONFeature[];
 }
 

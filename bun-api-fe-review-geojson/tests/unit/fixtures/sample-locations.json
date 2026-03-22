@@ -1,0 +1,56 @@
+[
+  {
+    "id": "loc-001",
+    "name": "Central Library",
+    "category": "education",
+    "city": "Helsinki",
+    "country_code": "FIN",
+    "latitude": 60.1699,
+    "longitude": 24.9384,
+    "height": 32.5,
+    "status": "active",
+    "rating": 4.7,
+    "metadata": {
+      "source": "osm",
+      "verified": true
+    },
+    "tags": ["public", "landmark"],
+    "updated_at": 1700000000000
+  },
+  {
+    "id": "loc-002",
+    "name": "Market Square",
+    "category": "commerce",
+    "city": "Helsinki",
+    "country_code": "FIN",
+    "latitude": 60.1675,
+    "longitude": 24.9514,
+    "height": 5.0,
+    "status": "active",
+    "rating": 4.2,
+    "metadata": {
+      "source": "manual",
+      "verified": false
+    },
+    "tags": ["tourism", "market"],
+    "updated_at": 1700100000000
+  },
+  {
+    "id": "loc-003",
+    "name": "Train Station",
+    "category": "transit",
+    "city": "Helsinki",
+    "country_code": "FIN",
+    "latitude": 60.1718,
+    "longitude": 24.9414,
+    "height": 65.0,
+    "status": "reviewed",
+    "rating": 4.5,
+    "metadata": {
+      "source": "osm",
+      "verified": true
+    },
+    "tags": ["transport", "landmark"],
+    "updated_at": 1700200000000
+  }
+]
