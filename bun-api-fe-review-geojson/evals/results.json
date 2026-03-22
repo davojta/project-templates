@@ -1,0 +1,179 @@
+{
+  "timestamp": "2026-03-22T09:48:22.936Z",
+  "totalPassed": 6,
+  "totalFailed": 0,
+  "evals": [
+    {
+      "id": 1,
+      "name": "app-inspect-available",
+      "passed": true,
+      "assertions": [
+        {
+          "check": "__appInspect is defined",
+          "passed": true,
+          "detail": "typeof: \"object\""
+        },
+        {
+          "check": "getPage() returns map",
+          "passed": true,
+          "detail": "page: \"map\""
+        },
+        {
+          "check": "map API registered",
+          "passed": true,
+          "detail": "typeof map.getFeatureDetails: \"function\""
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "map-feature-navigation",
+      "passed": true,
+      "assertions": [
+        {
+          "check": "getFeatureDetails returns feature at index 0",
+          "passed": true,
+          "detail": "index=0, total=5"
+        },
+        {
+          "check": "next() returns true",
+          "passed": true,
+          "detail": "true"
+        },
+        {
+          "check": "after next(), index is 1",
+          "passed": true,
+          "detail": "index=1"
+        },
+        {
+          "check": "prev() returns true",
+          "passed": true,
+          "detail": "true"
+        },
+        {
+          "check": "after prev(), index is 0",
+          "passed": true,
+          "detail": "index=0"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "map-flag-unflag",
+      "passed": true,
+      "assertions": [
+        {
+          "check": "unflag() returns true when flagged",
+          "passed": true,
+          "detail": "true"
+        },
+        {
+          "check": "isFlagged is false after unflag",
+          "passed": true,
+          "detail": "isFlagged=false"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "cross-page-navigation",
+      "passed": true,
+      "assertions": [
+        {
+          "check": "navigated to table",
+          "passed": true,
+          "detail": "\"table\""
+        },
+        {
+          "check": "table.getData() returns features",
+          "passed": true,
+          "detail": "count=5"
+        },
+        {
+          "check": "navigated to results",
+          "passed": true,
+          "detail": "\"results\""
+        },
+        {
+          "check": "results.getSummary() returns valid summary",
+          "passed": true,
+          "detail": "total=5, flagged=4"
+        },
+        {
+          "check": "navigated back to map",
+          "passed": true,
+          "detail": "\"map\""
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "map-inspect-viewport",
+      "passed": true,
+      "assertions": [
+        {
+          "check": "__mapInspect.getCamera() returns valid camera",
+          "passed": true,
+          "detail": "center=-122.4194,37.7749, zoom=14"
+        },
+        {
+          "check": "geojson layers exist",
+          "passed": true,
+          "detail": "layers=[\"geojson-layer\",\"geojson-layer-highlight\"]"
+        },
+        {
+          "check": "verify() returns ok status",
+          "passed": true,
+          "detail": "status=ok"
+        },
+        {
+          "check": "verify() returns feature query results",
+          "passed": true,
+          "detail": "featureCount=1"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "accessibility-tree",
+      "passed": true,
+      "assertions": [
+        {
+          "check": "surf read returns content",
+          "passed": true,
+          "detail": "length=716"
+        },
+        {
+          "check": "aria-label \"nav-map\" visible in tree",
+          "passed": true,
+          "detail": "found"
+        },
+        {
+          "check": "aria-label \"nav-table\" visible in tree",
+          "passed": true,
+          "detail": "found"
+        },
+        {
+          "check": "aria-label \"nav-results\" visible in tree",
+          "passed": true,
+          "detail": "found"
+        },
+        {
+          "check": "aria-label \"btn-back\" visible in tree",
+          "passed": true,
+          "detail": "found"
+        },
+        {
+          "check": "aria-label \"btn-forward\" visible in tree",
+          "passed": true,
+          "detail": "found"
+        },
+        {
+          "check": "layer toggle checkbox visible",
+          "passed": true,
+          "detail": "found"
+        }
+      ]
+    }
+  ]
+}
