@@ -3,6 +3,7 @@ import mapboxgl from 'mapbox-gl';
 import type { GeoJSONFeature, FeatureReview } from '../../../types/index.js';
 import { MARKER_COLORS, MAP_CONFIG, BASEMAPS } from '../config.js';
 import { BasemapSelector } from './BasemapSelector.js';
+import { FeatureDetails } from './FeatureDetails.js';
 
 interface ViewportQueryOptions {
   layers: string[];
@@ -43,9 +44,10 @@ interface MapShellProps {
   selectedFeature?: GeoJSONFeature | null;
   onFeatureClick?: (feature: GeoJSONFeature) => void;
   reviews?: FeatureReview[];
+  currentFeature?: GeoJSONFeature | null;
 }
 
-export function MapShell({ geojsonUrl, selectedFeature, onFeatureClick, reviews = [] }: MapShellProps) {
+export function MapShell({ geojsonUrl, selectedFeature, onFeatureClick, reviews = [], currentFeature }: MapShellProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -375,6 +377,7 @@ export function MapShell({ geojsonUrl, selectedFeature, onFeatureClick, reviews 
     <div style={{ position: 'relative', width: '100%', height: '600px' }} data-testid="map-shell" aria-label="map-shell">
       <div ref={mapContainer} style={{ width: '100%', height: '100%' }} data-testid="map-container" role="application" aria-label="map-container" />
       <BasemapSelector currentBasemap={currentBasemapId} onBasemapChange={handleBasemapChange} />
+      {currentFeature && <FeatureDetails feature={currentFeature} />}
     </div>
   );
 }

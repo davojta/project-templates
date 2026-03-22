@@ -5,12 +5,20 @@ interface LayerToggleProps {
   onToggle: (layerId: string) => void;
   onApplyFlags?: (layerId: string) => void;
   isApplying?: boolean;
+  featureCounter?: string;
 }
 
-export function LayerToggle({ layers, onToggle, onApplyFlags, isApplying }: LayerToggleProps) {
+export function LayerToggle({ layers, onToggle, onApplyFlags, isApplying, featureCounter }: LayerToggleProps) {
   return (
     <div style={{ padding: '1rem', borderBottom: '1px solid #ddd' }} data-testid="layer-toggle" aria-label="layer-toggle" role="group">
-      <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem' }}>Layers</h3>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+        <h3 style={{ margin: 0, fontSize: '1rem' }}>Layers</h3>
+        {featureCounter && (
+          <span style={{ fontSize: '0.875rem', color: '#666' }} data-testid="feature-counter" aria-label="feature-counter">
+            {featureCounter}
+          </span>
+        )}
+      </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {layers.map((layer) => (
           <div key={layer.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} data-testid={`layer-item-${layer.id}`}>

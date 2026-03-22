@@ -130,13 +130,18 @@ function MapComponent() {
 
   return (
     <div data-testid="map-view">
-      <LayerToggle layers={layers} onToggle={handleToggleLayer} />
+      <LayerToggle
+        layers={layers}
+        onToggle={handleToggleLayer}
+        featureCounter={features.length > 0 ? `Feature ${currentFeatureIndex + 1} of ${features.length}` : undefined}
+      />
       {currentLayer ? (
         <>
           <MapShell
             geojsonUrl={currentLayer.url}
             selectedFeature={currentFeature}
             reviews={reviews}
+            currentFeature={currentFeature}
             onFeatureClick={(feature) => {
               const index = features.findIndex((f) => f.id === feature.id);
               if (index !== -1) {
@@ -152,34 +157,6 @@ function MapComponent() {
             canGoBack={currentFeatureIndex > 0}
             canGoForward={currentFeatureIndex < features.length - 1}
           />
-          <div style={{ padding: '1rem', textAlign: 'center' }} data-testid="feature-info" aria-label="feature-info" role="region">
-            <div style={{ marginBottom: '0.5rem' }} data-testid="feature-counter" aria-label="feature-counter">
-              Feature {currentFeatureIndex + 1} of {features.length}
-            </div>
-            {currentFeature && (
-              <div
-                style={{
-                  marginTop: '1rem',
-                  padding: '1rem',
-                  backgroundColor: '#f5f5f5',
-                  borderRadius: '4px',
-                  maxWidth: '600px',
-                  margin: '0 auto',
-                }}
-              >
-                <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem' }}>
-                  Feature Details
-                </h3>
-                <div style={{ textAlign: 'left' }} data-testid="feature-properties" aria-label="feature-properties">
-                  {Object.entries(currentFeature.properties).map(([key, value]) => (
-                    <div key={key} style={{ padding: '0.25rem 0' }}>
-                      <strong>{key}:</strong> {String(value)}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
         </>
       ) : (
         <div style={{ padding: '2rem', textAlign: 'center' }}>
