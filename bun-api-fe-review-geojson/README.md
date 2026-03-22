@@ -209,6 +209,7 @@ bun dev
 ```
 
 This concurrently starts:
+
 - **Hono API server** on `http://localhost:3000`
 - **Vite dev server** on `http://localhost:5173`
 
@@ -217,6 +218,7 @@ The Hono server proxies frontend requests to Vite in development mode.
 Open `http://localhost:3000` in your browser.
 
 **Alternative**: Run servers separately in different terminals:
+
 ```bash
 # Terminal 1
 bun run dev:server
@@ -278,7 +280,7 @@ curl -X POST http://localhost:3000/api/layers \
 {
   featureId: string;
   layerId: string;
-  status: 'pending' | 'flagged' | 'approved';
+  status: "pending" | "flagged" | "approved";
   reviewedAt: string;
 }
 ```
@@ -326,6 +328,7 @@ bun run build
 ```
 
 This creates:
+
 - Server bundle in `dist/index.js`
 - Client bundle in `dist/client/`
 
@@ -354,11 +357,13 @@ Update basemap styles in `data/basemaps.json`:
 ### Review Workflow
 
 The review workflow uses three states:
+
 - `pending`: Initial state for new features
 - `flagged`: Marked for further review
 - `approved`: Reviewed and approved
 
 You can extend this by modifying:
+
 - `src/types/index.ts` - Add new status types
 - `src/api/schemas.ts` - Update Zod validation
 - `src/client/src/components/ReviewControls.tsx` - Add new control buttons
@@ -366,6 +371,7 @@ You can extend this by modifying:
 ### Styling
 
 Components use inline styles for simplicity. For production applications, consider:
+
 - CSS modules
 - Tailwind CSS
 - Styled-components
@@ -398,6 +404,7 @@ Components use inline styles for simplicity. For production applications, consid
 ### Mapbox Token Issues
 
 If the map doesn't load, verify:
+
 1. `VITE_MAPBOX_ACCESS_TOKEN` is set in `.env` (project root)
 2. Token has public access scope
 3. Token is not expired

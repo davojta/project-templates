@@ -19,7 +19,11 @@ export interface ResultsSummary {
   reviewed: number;
   flagged: number;
   passed: number;
-  flaggedFeatures: { id: string | number; properties: Record<string, unknown>; reviewedAt: string }[];
+  flaggedFeatures: {
+    id: string | number;
+    properties: Record<string, unknown>;
+    reviewedAt: string;
+  }[];
 }
 
 export interface AppInspectMapAPI {
@@ -41,7 +45,7 @@ export interface AppInspectResultsAPI {
 
 export interface AppInspectAPI {
   getPage: () => string;
-  navigate: (page: 'map' | 'table' | 'results') => void;
+  navigate: (page: "map" | "table" | "results") => void;
   map: AppInspectMapAPI | null;
   table: AppInspectTableAPI | null;
   results: AppInspectResultsAPI | null;
@@ -53,7 +57,10 @@ declare global {
   }
 }
 
-export function initAppInspect(navigateFn: (page: 'map' | 'table' | 'results') => void, getPage: () => string): AppInspectAPI {
+export function initAppInspect(
+  navigateFn: (page: "map" | "table" | "results") => void,
+  getPage: () => string,
+): AppInspectAPI {
   const api: AppInspectAPI = {
     getPage,
     navigate: navigateFn,

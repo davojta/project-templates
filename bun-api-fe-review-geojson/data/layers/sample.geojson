@@ -6,10 +6,7 @@
       "id": "point-1",
       "geometry": {
         "type": "Point",
-        "coordinates": [
-          -122.4194,
-          37.7749
-        ]
+        "coordinates": [-122.4194, 37.7749]
       },
       "properties": {
         "name": "San Francisco",
@@ -23,10 +20,7 @@
       "id": "point-2",
       "geometry": {
         "type": "Point",
-        "coordinates": [
-          -118.2437,
-          34.0522
-        ]
+        "coordinates": [-118.2437, 34.0522]
       },
       "properties": {
         "name": "Los Angeles",
@@ -40,10 +34,7 @@
       "id": "point-3",
       "geometry": {
         "type": "Point",
-        "coordinates": [
-          -73.935242,
-          40.73061
-        ]
+        "coordinates": [-73.935242, 40.73061]
       },
       "properties": {
         "name": "New York",
@@ -57,10 +48,7 @@
       "id": "point-4",
       "geometry": {
         "type": "Point",
-        "coordinates": [
-          -87.6298,
-          41.8781
-        ]
+        "coordinates": [-87.6298, 41.8781]
       },
       "properties": {
         "name": "Chicago",
@@ -74,10 +62,7 @@
       "id": "point-5",
       "geometry": {
         "type": "Point",
-        "coordinates": [
-          -95.3698,
-          29.7604
-        ]
+        "coordinates": [-95.3698, 29.7604]
       },
       "properties": {
         "name": "Houston",

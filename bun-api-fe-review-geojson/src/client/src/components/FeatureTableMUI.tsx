@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -9,8 +9,8 @@ import {
   TableSortLabel,
   Paper,
   IconButton,
-} from '@mui/material';
-import type { GeoJSONFeature } from '../../../types/index.js';
+} from "@mui/material";
+import type { GeoJSONFeature } from "../../../types/index.js";
 
 interface FeatureTableMUIProps {
   features: GeoJSONFeature[];
@@ -19,7 +19,7 @@ interface FeatureTableMUIProps {
   onToggleFlag?: (featureId: string | number, currentFlag: boolean) => void;
 }
 
-type Order = 'asc' | 'desc';
+type Order = "asc" | "desc";
 
 export function FeatureTableMUI({
   features,
@@ -27,14 +27,15 @@ export function FeatureTableMUI({
   onFeatureSelect,
   onToggleFlag,
 }: FeatureTableMUIProps) {
-  const [orderBy, setOrderBy] = useState<string>('id');
-  const [order, setOrder] = useState<Order>('asc');
+  const [orderBy, setOrderBy] = useState<string>("id");
+  const [order, setOrder] = useState<Order>("asc");
 
-  const propertyKeys = features.length > 0 ? Object.keys(features[0].properties || {}) : [];
+  const propertyKeys =
+    features.length > 0 ? Object.keys(features[0].properties || {}) : [];
 
   const handleRequestSort = (property: string) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
+    const isAsc = orderBy === property && order === "asc";
+    setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
   };
 
@@ -42,7 +43,7 @@ export function FeatureTableMUI({
     let aVal: unknown = a.id;
     let bVal: unknown = b.id;
 
-    if (orderBy === 'flag') {
+    if (orderBy === "flag") {
       aVal = reviews.get(a.id!) ? 1 : 0;
       bVal = reviews.get(b.id!) ? 1 : 0;
     } else if (orderBy in (a.properties || {})) {
@@ -51,27 +52,31 @@ export function FeatureTableMUI({
     }
 
     const comparison =
-      typeof aVal === 'string' && typeof bVal === 'string'
+      typeof aVal === "string" && typeof bVal === "string"
         ? aVal.localeCompare(bVal)
         : aVal < bVal
-        ? -1
-        : aVal > bVal
-        ? 1
-        : 0;
+          ? -1
+          : aVal > bVal
+            ? 1
+            : 0;
 
-    return order === 'asc' ? comparison : -comparison;
+    return order === "asc" ? comparison : -comparison;
   });
 
   return (
-    <TableContainer component={Paper} sx={{ maxHeight: 'calc(100vh - 200px)' }} data-testid="feature-table">
+    <TableContainer
+      component={Paper}
+      sx={{ maxHeight: "calc(100vh - 200px)" }}
+      data-testid="feature-table"
+    >
       <Table stickyHeader>
         <TableHead>
           <TableRow>
             <TableCell>
               <TableSortLabel
-                active={orderBy === 'id'}
-                direction={orderBy === 'id' ? order : 'asc'}
-                onClick={() => handleRequestSort('id')}
+                active={orderBy === "id"}
+                direction={orderBy === "id" ? order : "asc"}
+                onClick={() => handleRequestSort("id")}
               >
                 ID
               </TableSortLabel>
@@ -80,7 +85,7 @@ export function FeatureTableMUI({
               <TableCell key={key}>
                 <TableSortLabel
                   active={orderBy === key}
-                  direction={orderBy === key ? order : 'asc'}
+                  direction={orderBy === key ? order : "asc"}
                   onClick={() => handleRequestSort(key)}
                 >
                   {key}
@@ -89,9 +94,9 @@ export function FeatureTableMUI({
             ))}
             <TableCell>
               <TableSortLabel
-                active={orderBy === 'flag'}
-                direction={orderBy === 'flag' ? order : 'asc'}
-                onClick={() => handleRequestSort('flag')}
+                active={orderBy === "flag"}
+                direction={orderBy === "flag" ? order : "asc"}
+                onClick={() => handleRequestSort("flag")}
               >
                 Flag
               </TableSortLabel>
@@ -108,16 +113,20 @@ export function FeatureTableMUI({
                 onClick={() => onFeatureSelect?.(feature)}
                 data-testid={`feature-row-${feature.id}`}
                 sx={{
-                  cursor: onFeatureSelect ? 'pointer' : 'default',
-                  backgroundColor: isFlagged ? '#ffecec' : 'transparent',
-                  '&:hover': {
-                    backgroundColor: isFlagged ? '#ffd9d9 !important' : undefined,
+                  cursor: onFeatureSelect ? "pointer" : "default",
+                  backgroundColor: isFlagged ? "#ffecec" : "transparent",
+                  "&:hover": {
+                    backgroundColor: isFlagged
+                      ? "#ffd9d9 !important"
+                      : undefined,
                   },
                 }}
               >
                 <TableCell>{feature.id}</TableCell>
                 {propertyKeys.map((key) => (
-                  <TableCell key={key}>{String(feature.properties[key] ?? '')}</TableCell>
+                  <TableCell key={key}>
+                    {String(feature.properties[key] ?? "")}
+                  </TableCell>
                 ))}
                 <TableCell>
                   <IconButton
@@ -127,9 +136,9 @@ export function FeatureTableMUI({
                       onToggleFlag?.(feature.id!, isFlagged);
                     }}
                     data-testid={`flag-btn-${feature.id}`}
-                    sx={{ fontSize: '1.5rem' }}
+                    sx={{ fontSize: "1.5rem" }}
                   >
-                    {isFlagged ? '🔴' : '🟢'}
+                    {isFlagged ? "🔴" : "🟢"}
                   </IconButton>
                 </TableCell>
               </TableRow>

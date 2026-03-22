@@ -1,11 +1,11 @@
-import { db, layerQueries } from '../src/api/db.js';
+import { db, layerQueries } from "../src/api/db.js";
 
 const sampleLayer = {
-  id: 'sample-cities',
-  name: 'US Cities Sample',
-  url: '/data/layers/sample.geojson',
+  id: "sample-cities",
+  name: "US Cities Sample",
+  url: "/data/layers/sample.geojson",
   visible: true,
-  color: '#007cbf',
+  color: "#007cbf",
 };
 
 try {
@@ -16,13 +16,13 @@ try {
       sampleLayer.name,
       sampleLayer.url,
       1,
-      sampleLayer.color
+      sampleLayer.color,
     );
-    console.log('✅ Sample layer seeded successfully');
+    console.log("✅ Sample layer seeded successfully");
   } else {
-    console.log('ℹ️  Sample layer already exists');
+    console.log("ℹ️  Sample layer already exists");
   }
 } catch (error) {
-  console.error('❌ Error seeding database:', error);
+  console.error("❌ Error seeding database:", error);
   process.exit(1);
 }

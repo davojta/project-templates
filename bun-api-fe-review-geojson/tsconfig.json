@@ -14,15 +14,10 @@
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "allowJs": true,
-    "types": [
-      "bun-types"
-    ],
+    "types": ["bun-types"],
     "paths": {
       "@/*": ["./src/*"]
     }
   },
-  "include": [
-    "index.ts",
-    "src/**/*"
-  ]
+  "include": ["index.ts", "src/**/*"]
 }

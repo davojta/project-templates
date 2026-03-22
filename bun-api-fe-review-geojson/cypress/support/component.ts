@@ -1,4 +1,4 @@
-import { mount } from 'cypress/react';
+import { mount } from "cypress/react";
 
 declare global {
   namespace Cypress {
@@ -8,4 +8,4 @@ declare global {
   }
 }
 
-Cypress.Commands.add('mount', mount);
+Cypress.Commands.add("mount", mount);

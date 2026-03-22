@@ -1,4 +1,4 @@
-import type { Layer } from '../../../types/index.js';
+import type { Layer } from "../../../types/index.js";
 
 interface LayerToggleProps {
   layers: Layer[];
@@ -8,26 +8,59 @@ interface LayerToggleProps {
   featureCounter?: string;
 }
 
-export function LayerToggle({ layers, onToggle, onApplyFlags, isApplying, featureCounter }: LayerToggleProps) {
+export function LayerToggle({
+  layers,
+  onToggle,
+  onApplyFlags,
+  isApplying,
+  featureCounter,
+}: LayerToggleProps) {
   return (
-    <div style={{ padding: '1rem', borderBottom: '1px solid #ddd' }} data-testid="layer-toggle" aria-label="layer-toggle" role="group">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-        <h3 style={{ margin: 0, fontSize: '1rem' }}>Layers</h3>
+    <div
+      style={{ padding: "1rem", borderBottom: "1px solid #ddd" }}
+      data-testid="layer-toggle"
+      aria-label="layer-toggle"
+      role="group"
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "0.5rem",
+        }}
+      >
+        <h3 style={{ margin: 0, fontSize: "1rem" }}>Layers</h3>
         {featureCounter && (
-          <span style={{ fontSize: '0.875rem', color: '#666' }} data-testid="feature-counter" aria-label="feature-counter">
+          <span
+            style={{ fontSize: "0.875rem", color: "#666" }}
+            data-testid="feature-counter"
+            aria-label="feature-counter"
+          >
             {featureCounter}
           </span>
         )}
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
         {layers.map((layer) => (
-          <div key={layer.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} data-testid={`layer-item-${layer.id}`}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }}>
+          <div
+            key={layer.id}
+            style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+            data-testid={`layer-item-${layer.id}`}
+          >
+            <label
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                flex: 1,
+              }}
+            >
               <input
                 type="checkbox"
                 checked={layer.visible}
                 onChange={() => onToggle(layer.id)}
-                style={{ cursor: 'pointer' }}
+                style={{ cursor: "pointer" }}
                 data-testid={`layer-checkbox-${layer.id}`}
                 aria-label={`layer-toggle-${layer.name}`}
               />
@@ -40,17 +73,17 @@ export function LayerToggle({ layers, onToggle, onApplyFlags, isApplying, featur
                 data-testid={`layer-apply-${layer.id}`}
                 aria-label={`layer-apply-${layer.name}`}
                 style={{
-                  padding: '0.25rem 0.75rem',
-                  fontSize: '0.875rem',
-                  backgroundColor: '#007cbf',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: isApplying ? 'not-allowed' : 'pointer',
+                  padding: "0.25rem 0.75rem",
+                  fontSize: "0.875rem",
+                  backgroundColor: "#007cbf",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: isApplying ? "not-allowed" : "pointer",
                   opacity: isApplying ? 0.6 : 1,
                 }}
               >
-                {isApplying ? 'Applying...' : 'Apply'}
+                {isApplying ? "Applying..." : "Apply"}
               </button>
             )}
           </div>

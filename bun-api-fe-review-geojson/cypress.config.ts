@@ -1,18 +1,18 @@
-import { defineConfig } from 'cypress';
+import { defineConfig } from "cypress";
 
 export default defineConfig({
   e2e: {
-    baseUrl: 'http://localhost:3000',
-    specPattern: 'cypress/e2e/**/*.cy.ts',
+    baseUrl: "http://localhost:3000",
+    specPattern: "cypress/e2e/**/*.cy.ts",
   },
   component: {
     devServer: {
-      framework: 'react',
-      bundler: 'vite',
+      framework: "react",
+      bundler: "vite",
       viteConfig: {
-        configFile: 'cypress/vite.config.ts',
+        configFile: "cypress/vite.config.ts",
       },
     },
-    specPattern: 'cypress/component/**/*.cy.tsx',
+    specPattern: "cypress/component/**/*.cy.tsx",
   },
 });

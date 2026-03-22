@@ -1,6 +1,6 @@
 ``# GeoJSON Review: Forward Button Demo
 
-*2026-02-15T21:11:49Z by Showboat 0.5.0*
+_2026-02-15T21:11:49Z by Showboat 0.5.0_
 
 Open the review app and capture initial state (Feature 1 of 5).
 

@@ -1,12 +1,12 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { FeatureReview } from '../../../types/index.js';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import type { FeatureReview } from "../../../types/index.js";
 
 export function useFeatureReview(layerId: string, featureId: string) {
   return useQuery({
-    queryKey: ['feature-review', layerId, featureId],
+    queryKey: ["feature-review", layerId, featureId],
     queryFn: async (): Promise<FeatureReview> => {
       const res = await fetch(`/api/features/${layerId}/${featureId}`);
-      if (!res.ok) throw new Error('Failed to fetch feature review');
+      if (!res.ok) throw new Error("Failed to fetch feature review");
       return res.json();
     },
     enabled: !!layerId && !!featureId,
@@ -15,10 +15,10 @@ export function useFeatureReview(layerId: string, featureId: string) {
 
 export function useLayerReviews(layerId: string) {
   return useQuery({
-    queryKey: ['layer-reviews', layerId],
+    queryKey: ["layer-reviews", layerId],
     queryFn: async (): Promise<FeatureReview[]> => {
       const res = await fetch(`/api/features/layer/${layerId}`);
-      if (!res.ok) throw new Error('Failed to fetch layer reviews');
+      if (!res.ok) throw new Error("Failed to fetch layer reviews");
       return res.json();
     },
     enabled: !!layerId,
@@ -41,19 +41,19 @@ export function useUpdateFeatureReview() {
       note?: string;
     }) => {
       const res = await fetch(`/api/features/${layerId}/${featureId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isFlagged, note }),
       });
-      if (!res.ok) throw new Error('Failed to update feature review');
+      if (!res.ok) throw new Error("Failed to update feature review");
       return res.json();
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ['feature-review', variables.layerId, variables.featureId],
+        queryKey: ["feature-review", variables.layerId, variables.featureId],
       });
       queryClient.invalidateQueries({
-        queryKey: ['layer-reviews', variables.layerId],
+        queryKey: ["layer-reviews", variables.layerId],
       });
     },
   });

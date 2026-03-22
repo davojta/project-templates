@@ -1,18 +1,27 @@
-import { Card, FormControlLabel, Radio, RadioGroup, Typography } from '@mui/material';
-import { BASEMAPS } from '../config.js';
+import {
+  Card,
+  FormControlLabel,
+  Radio,
+  RadioGroup,
+  Typography,
+} from "@mui/material";
+import { BASEMAPS } from "../config.js";
 
 interface BasemapSelectorProps {
   currentBasemap: string;
   onBasemapChange: (styleUrl: string) => void;
 }
 
-export function BasemapSelector({ currentBasemap, onBasemapChange }: BasemapSelectorProps) {
+export function BasemapSelector({
+  currentBasemap,
+  onBasemapChange,
+}: BasemapSelectorProps) {
   return (
     <Card
       data-testid="basemap-selector"
       aria-label="basemap-selector"
       sx={{
-        position: 'absolute',
+        position: "absolute",
         bottom: 24,
         right: 10,
         padding: 1.5,
@@ -38,7 +47,7 @@ export function BasemapSelector({ currentBasemap, onBasemapChange }: BasemapSele
             value={basemap.id}
             control={<Radio size="small" />}
             label={basemap.name}
-            sx={{ '& .MuiTypography-root': { fontSize: '0.875rem' } }}
+            sx={{ "& .MuiTypography-root": { fontSize: "0.875rem" } }}
           />
         ))}
       </RadioGroup>

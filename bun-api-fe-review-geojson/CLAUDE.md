@@ -45,21 +45,25 @@ cypress/              # Component and e2e tests
 ## Validation
 
 **Quick validation (after each non-trivial edit):**
+
 ```bash
 bun run test:ci && bun run typecheck
 ```
 
 **Component tests:**
+
 ```bash
 bun run test:components   # Cypress component tests
 ```
 
 **Full validation (after big refactoring):**
+
 ```bash
 bun run test:e2e          # Cypress e2e tests (slow)
 ```
 
 **Before committing:**
+
 ```bash
 bun run format            # Format code with Prettier
 ```
@@ -77,6 +81,7 @@ surf read --depth 3 --compact          # shorter output
 ### Identifiers convention
 
 All interactive UI elements have two attributes:
+
 - `data-testid="<id>"` -- for Cypress / test automation selectors
 - `aria-label="<id>"` -- for surf-cli accessibility tree (shows up in `surf read` output so an AI agent can understand and interact with the page without screenshots)
 
@@ -96,10 +101,10 @@ bun evals/run-evals.ts --deterministic  # deterministic only (fast, no LLM)
 bun evals/run-evals.ts --agentic        # agentic only (uses claude -p with haiku)
 ```
 
-Deterministic evals (1-6) test __appInspect and __mapInspect APIs directly via surf js.
+Deterministic evals (1-6) test **appInspect and **mapInspect APIs directly via surf js.
 Agentic evals (7-9) give Claude a task prompt and assert on structured output.
 
-## App Inspection (window.__appInspect)
+## App Inspection (window.\_\_appInspect)
 
 High-level programmatic API for navigating and interacting with the app via `surf js`. Available on all pages. Each page registers its own handlers when mounted.
 
@@ -167,7 +172,7 @@ surf js "window.__appInspect.navigate('results')"
 surf js "return JSON.stringify(window.__appInspect.results.getSummary())"
 ```
 
-## Map Inspection (window.__mapInspect)
+## Map Inspection (window.\_\_mapInspect)
 
 Low-level Mapbox GL map inspection API. Available only on the map page. Use for camera state, style layers, and viewport feature queries.
 
@@ -192,6 +197,7 @@ surf js "return (async()=>{const r=await window.__mapInspect.verify({queries:[{n
 ```
 
 Returns a single JSON with:
+
 - `status` -- "ok" or "error"
 - `camera` -- current center/zoom/bearing/pitch
 - `layers` -- all map style layers with visibility
