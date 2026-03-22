@@ -51,35 +51,38 @@ Archive a completed change in the experimental workflow.
    **If delta specs exist, perform a quick sync check:**
 
    a. **For each delta spec** at `openspec/changes/<name>/specs/<capability>/spec.md`:
-      - Extract requirement names (lines matching `### Requirement: <name>`)
-      - Note which sections exist (ADDED, MODIFIED, REMOVED)
+   - Extract requirement names (lines matching `### Requirement: <name>`)
+   - Note which sections exist (ADDED, MODIFIED, REMOVED)
 
    b. **Check corresponding main spec** at `openspec/specs/<capability>/spec.md`:
-      - If main spec doesn't exist → needs sync
-      - If main spec exists, check if ADDED requirement names appear in it
-      - If any ADDED requirements are missing from main spec → needs sync
+   - If main spec doesn't exist → needs sync
+   - If main spec exists, check if ADDED requirement names appear in it
+   - If any ADDED requirements are missing from main spec → needs sync
 
    c. **Report findings:**
 
-      **If sync needed:**
-      ```
-      ⚠️ Delta specs may not be synced:
-      - specs/auth/spec.md → Main spec missing requirement "Token Refresh"
-      - specs/api/spec.md → Main spec doesn't exist yet
+   **If sync needed:**
 
-      Would you like to sync now before archiving?
-      ```
-      - Use **AskUserQuestion tool** with options: "Sync now", "Archive without syncing"
-      - If user chooses sync, execute /opsx:sync logic (use the openspec-sync-specs skill)
+   ```
+   ⚠️ Delta specs may not be synced:
+   - specs/auth/spec.md → Main spec missing requirement "Token Refresh"
+   - specs/api/spec.md → Main spec doesn't exist yet
 
-      **If already synced (all requirements found):**
-      - Proceed without prompting (specs appear to be in sync)
+   Would you like to sync now before archiving?
+   ```
+
+   - Use **AskUserQuestion tool** with options: "Sync now", "Archive without syncing"
+   - If user chooses sync, execute /opsx:sync logic (use the openspec-sync-specs skill)
+
+   **If already synced (all requirements found):**
+   - Proceed without prompting (specs appear to be in sync)
 
    **If no delta specs exist:** Proceed without sync-related checks.
 
 5. **Perform the archive**
 
    Create the archive directory if it doesn't exist:
+
    ```bash
    mkdir -p openspec/changes/archive
    ```
@@ -117,6 +120,7 @@ All artifacts complete. All tasks complete.
 ```
 
 **Guardrails**
+
 - Always prompt for change selection if not provided
 - Use artifact graph (openspec status --json) for completion checking
 - Don't block archive on warnings - just inform and confirm
