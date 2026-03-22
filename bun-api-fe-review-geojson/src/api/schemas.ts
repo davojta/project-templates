@@ -24,6 +24,7 @@ export const updateLayerSchema = z.object({
 
 export const updateFeatureReviewSchema = z.object({
   isFlagged: z.boolean(),
+  note: z.string().optional(),
 });
 
 export const featureReviewSchema = z.object({

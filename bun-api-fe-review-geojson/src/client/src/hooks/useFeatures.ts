@@ -33,15 +33,17 @@ export function useUpdateFeatureReview() {
       layerId,
       featureId,
       isFlagged,
+      note,
     }: {
       layerId: string;
       featureId: string;
       isFlagged: boolean;
+      note?: string;
     }) => {
       const res = await fetch(`/api/features/${layerId}/${featureId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isFlagged }),
+        body: JSON.stringify({ isFlagged, note }),
       });
       if (!res.ok) throw new Error('Failed to update feature review');
       return res.json();

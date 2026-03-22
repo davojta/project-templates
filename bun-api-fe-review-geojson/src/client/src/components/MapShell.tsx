@@ -127,6 +127,7 @@ export function MapShell({ geojsonUrl, selectedFeature, onFeatureClick, reviews 
       style: 'mapbox://styles/mapbox/streets-v12',
       center: [0, 0],
       zoom: 2,
+      keyboard: false,
     });
 
     map.current.on('load', () => setLoaded(true));

@@ -11,6 +11,7 @@ export interface FeatureReview {
   layerId: string;
   isFlagged: boolean;
   reviewedAt: string;
+  note?: string;
 }
 
 export interface GeoJSONFeature {

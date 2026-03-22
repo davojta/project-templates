@@ -17,6 +17,7 @@ db.exec(`
     layer_id TEXT NOT NULL,
     is_flagged INTEGER NOT NULL DEFAULT 0,
     reviewed_at TEXT NOT NULL,
+    note TEXT DEFAULT '',
     PRIMARY KEY (feature_id, layer_id),
     FOREIGN KEY (layer_id) REFERENCES layers(id) ON DELETE CASCADE
   );
@@ -24,6 +25,12 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_feature_reviews_layer_id ON feature_reviews(layer_id);
   CREATE INDEX IF NOT EXISTS idx_feature_reviews_is_flagged ON feature_reviews(is_flagged);
 `);
+
+try {
+  db.exec(`ALTER TABLE feature_reviews ADD COLUMN note TEXT DEFAULT ''`);
+} catch {
+  // column already exists
+}
 
 export const layerQueries = {
   getAll: db.query<Layer, []>('SELECT * FROM layers'),
@@ -43,19 +50,20 @@ export const layerQueries = {
 
 export const featureReviewQueries = {
   getByFeatureId: db.query<FeatureReview, [string, string]>(
-    'SELECT feature_id as featureId, layer_id as layerId, is_flagged as isFlagged, reviewed_at as reviewedAt FROM feature_reviews WHERE feature_id = ? AND layer_id = ?'
+    'SELECT feature_id as featureId, layer_id as layerId, is_flagged as isFlagged, reviewed_at as reviewedAt, note FROM feature_reviews WHERE feature_id = ? AND layer_id = ?'
   ),
 
   getByLayerId: db.query<FeatureReview, [string]>(
-    'SELECT feature_id as featureId, layer_id as layerId, is_flagged as isFlagged, reviewed_at as reviewedAt FROM feature_reviews WHERE layer_id = ?'
+    'SELECT feature_id as featureId, layer_id as layerId, is_flagged as isFlagged, reviewed_at as reviewedAt, note FROM feature_reviews WHERE layer_id = ?'
   ),
 
-  upsert: db.query<FeatureReview, [string, string, number, string]>(
-    `INSERT INTO feature_reviews (feature_id, layer_id, is_flagged, reviewed_at)
-     VALUES (?, ?, ?, ?)
+  upsert: db.query<FeatureReview, [string, string, number, string, string]>(
+    `INSERT INTO feature_reviews (feature_id, layer_id, is_flagged, reviewed_at, note)
+     VALUES (?, ?, ?, ?, ?)
      ON CONFLICT(feature_id, layer_id) DO UPDATE SET
        is_flagged = excluded.is_flagged,
-       reviewed_at = excluded.reviewed_at
-     RETURNING feature_id as featureId, layer_id as layerId, is_flagged as isFlagged, reviewed_at as reviewedAt`
+       reviewed_at = excluded.reviewed_at,
+       note = excluded.note
+     RETURNING feature_id as featureId, layer_id as layerId, is_flagged as isFlagged, reviewed_at as reviewedAt, note`
   ),
 };

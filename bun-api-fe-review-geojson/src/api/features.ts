@@ -35,13 +35,14 @@ features.put(
   (c) => {
     const layerId = c.req.param('layerId');
     const featureId = c.req.param('featureId');
-    const { isFlagged } = c.req.valid('json');
+    const { isFlagged, note } = c.req.valid('json');
 
     const review = featureReviewQueries.upsert.get(
       featureId,
       layerId,
       isFlagged ? 1 : 0,
-      new Date().toISOString()
+      new Date().toISOString(),
+      note ?? ''
     );
 
     return c.json(review);
