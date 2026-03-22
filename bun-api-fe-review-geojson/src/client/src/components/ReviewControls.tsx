@@ -19,6 +19,7 @@ export function ReviewControls({
 }: ReviewControlsProps) {
   return (
     <div
+      data-testid="review-controls"
       style={{
         display: 'flex',
         gap: '1rem',
@@ -27,11 +28,13 @@ export function ReviewControls({
         alignItems: 'center',
       }}
     >
-      <button onClick={onBack} disabled={!canGoBack} style={buttonStyle}>
+      <button onClick={onBack} disabled={!canGoBack} style={buttonStyle} data-testid="btn-back" aria-label="btn-back">
         ← Back
       </button>
       <button
         onClick={onToggleFlag}
+        data-testid="btn-flag"
+        aria-label={isFlagged ? 'btn-unflag' : 'btn-flag'}
         style={{
           ...buttonStyle,
           backgroundColor: isFlagged ? BUTTON_COLORS.flag : BUTTON_COLORS.unflag,
@@ -40,7 +43,7 @@ export function ReviewControls({
       >
         {isFlagged ? '🔴 Unflag' : '🟢 Flag'}
       </button>
-      <button onClick={onForward} disabled={!canGoForward} style={buttonStyle}>
+      <button onClick={onForward} disabled={!canGoForward} style={buttonStyle} data-testid="btn-forward" aria-label="btn-forward">
         Forward →
       </button>
     </div>

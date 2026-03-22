@@ -5,6 +5,7 @@ import { LayerToggle } from '../components/LayerToggle';
 import { useLayers, useUpdateLayer, useApplyLayerFlags } from '../hooks/useLayers';
 import { useLayerReviews, useUpdateFeatureReview } from '../hooks/useFeatures';
 import type { GeoJSONFeature, GeoJSONFeatureCollection } from '../../../types/index.js';
+import type { AppInspectTableAPI } from '../appInspect.js';
 
 export const Route = createFileRoute('/table')({
   component: TableComponent,
@@ -71,12 +72,36 @@ function TableComponent() {
     reviews.map((r) => [r.featureId, r.isFlagged])
   );
 
+  useEffect(() => {
+    if (!window.__appInspect) return;
+
+    const tableApi: AppInspectTableAPI = {
+      getData: () =>
+        features.map((f) => ({
+          id: f.id!,
+          isFlagged: reviewsMap.get(f.id!) || false,
+          properties: f.properties,
+        })),
+      toggleFlag: (featureId) => {
+        if (!currentLayer) return false;
+        const current = reviewsMap.get(featureId) || false;
+        handleToggleFlag(featureId, current);
+        return true;
+      },
+    };
+
+    window.__appInspect.table = tableApi;
+    return () => {
+      if (window.__appInspect) window.__appInspect.table = null;
+    };
+  }, [features, reviewsMap, currentLayer]);
+
   if (isLoading) {
     return <div style={{ padding: '2rem' }}>Loading...</div>;
   }
 
   return (
-    <div>
+    <div data-testid="table-view">
       <LayerToggle
         layers={layers}
         onToggle={handleToggleLayer}

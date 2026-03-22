@@ -4,6 +4,38 @@ import type { GeoJSONFeature, FeatureReview } from '../../../types/index.js';
 import { MARKER_COLORS, MAP_CONFIG, BASEMAPS } from '../config.js';
 import { BasemapSelector } from './BasemapSelector.js';
 
+interface ViewportQueryOptions {
+  layers: string[];
+  limit?: number;
+}
+
+interface ViewportQueryResult {
+  name: string;
+  featureCount: number;
+  features: Record<string, unknown>[];
+}
+
+interface MapInspectResult {
+  status: 'ok' | 'error';
+  timestamp: string;
+  camera: { center: [number, number]; zoom: number; bearing: number; pitch: number };
+  layers: { id: string; type: string; visible: boolean }[];
+  queries: ViewportQueryResult[];
+  error?: string;
+}
+
+interface MapInspectAPI {
+  verify: (opts: { queries: { name: string; method: string; options: ViewportQueryOptions }[] }) => Promise<MapInspectResult>;
+  getCamera: () => { center: [number, number]; zoom: number; bearing: number; pitch: number } | null;
+  getLayers: () => { id: string; type: string; visible: boolean }[];
+}
+
+declare global {
+  interface Window {
+    __mapInspect?: MapInspectAPI;
+  }
+}
+
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || '';
 
 interface MapShellProps {
@@ -102,6 +134,78 @@ export function MapShell({ geojsonUrl, selectedFeature, onFeatureClick, reviews 
       map.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    if (!map.current || !loaded) return;
+
+    const m = map.current;
+
+    const getCamera = () => {
+      const center = m.getCenter();
+      return {
+        center: [center.lng, center.lat] as [number, number],
+        zoom: m.getZoom(),
+        bearing: m.getBearing(),
+        pitch: m.getPitch(),
+      };
+    };
+
+    const getLayers = () => {
+      const style = m.getStyle();
+      if (!style?.layers) return [];
+      return style.layers.map((l) => ({
+        id: l.id,
+        type: l.type,
+        visible: m.getLayoutProperty(l.id, 'visibility') !== 'none',
+      }));
+    };
+
+    window.__mapInspect = {
+      getCamera,
+      getLayers,
+      verify: async ({ queries }) => {
+        try {
+          const camera = getCamera();
+          const layers = getLayers();
+          const results: ViewportQueryResult[] = [];
+
+          for (const q of queries) {
+            if (q.method === 'viewport') {
+              const limit = q.options.limit ?? 100;
+              const renderedFeatures = m.queryRenderedFeatures({
+                layers: q.options.layers,
+              });
+              const limited = renderedFeatures.slice(0, limit);
+              results.push({
+                name: q.name,
+                featureCount: renderedFeatures.length,
+                features: limited.map((f) => ({
+                  id: f.id,
+                  properties: f.properties,
+                  geometry: f.geometry,
+                })),
+              });
+            }
+          }
+
+          return { status: 'ok', timestamp: new Date().toISOString(), camera, layers, queries: results };
+        } catch (err) {
+          return {
+            status: 'error',
+            timestamp: new Date().toISOString(),
+            camera: getCamera(),
+            layers: getLayers(),
+            queries: [],
+            error: err instanceof Error ? err.message : String(err),
+          };
+        }
+      },
+    };
+
+    return () => {
+      delete window.__mapInspect;
+    };
+  }, [loaded]);
 
   useEffect(() => {
     if (!map.current || !loaded || !geojsonUrl) return;
@@ -268,8 +372,8 @@ export function MapShell({ geojsonUrl, selectedFeature, onFeatureClick, reviews 
   }, [selectedFeature, loaded]);
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '600px' }}>
-      <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
+    <div style={{ position: 'relative', width: '100%', height: '600px' }} data-testid="map-shell" aria-label="map-shell">
+      <div ref={mapContainer} style={{ width: '100%', height: '100%' }} data-testid="map-container" role="application" aria-label="map-container" />
       <BasemapSelector currentBasemap={currentBasemapId} onBasemapChange={handleBasemapChange} />
     </div>
   );

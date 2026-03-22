@@ -63,7 +63,7 @@ export function FeatureTableMUI({
   });
 
   return (
-    <TableContainer component={Paper} sx={{ maxHeight: 'calc(100vh - 200px)' }}>
+    <TableContainer component={Paper} sx={{ maxHeight: 'calc(100vh - 200px)' }} data-testid="feature-table">
       <Table stickyHeader>
         <TableHead>
           <TableRow>
@@ -106,6 +106,7 @@ export function FeatureTableMUI({
                 key={feature.id}
                 hover
                 onClick={() => onFeatureSelect?.(feature)}
+                data-testid={`feature-row-${feature.id}`}
                 sx={{
                   cursor: onFeatureSelect ? 'pointer' : 'default',
                   backgroundColor: isFlagged ? '#ffecec' : 'transparent',
@@ -125,6 +126,7 @@ export function FeatureTableMUI({
                       e.stopPropagation();
                       onToggleFlag?.(feature.id!, isFlagged);
                     }}
+                    data-testid={`flag-btn-${feature.id}`}
                     sx={{ fontSize: '1.5rem' }}
                   >
                     {isFlagged ? '🔴' : '🟢'}

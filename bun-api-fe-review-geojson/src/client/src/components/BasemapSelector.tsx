@@ -9,6 +9,8 @@ interface BasemapSelectorProps {
 export function BasemapSelector({ currentBasemap, onBasemapChange }: BasemapSelectorProps) {
   return (
     <Card
+      data-testid="basemap-selector"
+      aria-label="basemap-selector"
       sx={{
         position: 'absolute',
         bottom: 24,

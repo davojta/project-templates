@@ -6,6 +6,7 @@ import { LayerToggle } from '../components/LayerToggle';
 import { useLayers, useUpdateLayer } from '../hooks/useLayers';
 import { useUpdateFeatureReview, useLayerReviews } from '../hooks/useFeatures';
 import type { GeoJSONFeature, GeoJSONFeatureCollection } from '../../../types/index.js';
+import type { AppInspectMapAPI } from '../appInspect.js';
 
 export const Route = createFileRoute('/map')({
   component: MapComponent,
@@ -78,12 +79,57 @@ function MapComponent() {
     }
   };
 
+  useEffect(() => {
+    if (!window.__appInspect) return;
+
+    const mapApi: AppInspectMapAPI = {
+      next: () => {
+        if (currentFeatureIndex >= features.length - 1) return false;
+        handleForward();
+        return true;
+      },
+      prev: () => {
+        if (currentFeatureIndex <= 0) return false;
+        handleBack();
+        return true;
+      },
+      flag: () => {
+        if (!currentFeature || !selectedLayerId) return false;
+        if (isFlagged) return false;
+        handleToggleFlag();
+        return true;
+      },
+      unflag: () => {
+        if (!currentFeature || !selectedLayerId) return false;
+        if (!isFlagged) return false;
+        handleToggleFlag();
+        return true;
+      },
+      getFeatureDetails: () => {
+        if (!currentFeature) return null;
+        return {
+          id: currentFeature.id!,
+          index: currentFeatureIndex,
+          total: features.length,
+          isFlagged,
+          properties: currentFeature.properties,
+          geometry: currentFeature.geometry,
+        };
+      },
+    };
+
+    window.__appInspect.map = mapApi;
+    return () => {
+      if (window.__appInspect) window.__appInspect.map = null;
+    };
+  }, [currentFeatureIndex, features, currentFeature, isFlagged, selectedLayerId]);
+
   if (isLoading) {
     return <div style={{ padding: '2rem' }}>Loading...</div>;
   }
 
   return (
-    <div>
+    <div data-testid="map-view">
       <LayerToggle layers={layers} onToggle={handleToggleLayer} />
       {currentLayer ? (
         <>
@@ -106,8 +152,8 @@ function MapComponent() {
             canGoBack={currentFeatureIndex > 0}
             canGoForward={currentFeatureIndex < features.length - 1}
           />
-          <div style={{ padding: '1rem', textAlign: 'center' }}>
-            <div style={{ marginBottom: '0.5rem' }}>
+          <div style={{ padding: '1rem', textAlign: 'center' }} data-testid="feature-info" aria-label="feature-info" role="region">
+            <div style={{ marginBottom: '0.5rem' }} data-testid="feature-counter" aria-label="feature-counter">
               Feature {currentFeatureIndex + 1} of {features.length}
             </div>
             {currentFeature && (
@@ -124,7 +170,7 @@ function MapComponent() {
                 <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem' }}>
                   Feature Details
                 </h3>
-                <div style={{ textAlign: 'left' }}>
+                <div style={{ textAlign: 'left' }} data-testid="feature-properties" aria-label="feature-properties">
                   {Object.entries(currentFeature.properties).map(([key, value]) => (
                     <div key={key} style={{ padding: '0.25rem 0' }}>
                       <strong>{key}:</strong> {String(value)}
