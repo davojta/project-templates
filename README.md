@@ -26,6 +26,12 @@ Set of templates to start from scratch for different languages and stacks.
 |----------|------|-------------|
 | [go-cli](./go-cli) | Go CLI | Minimal CLI with Cobra, golangci-lint, and three testing levels |
 
+### Rust
+
+| Template | Type | Description |
+|----------|------|-------------|
+| [rust-cli](./rust-cli) | Rust CLI | CLI with clap (derive API), unit + integration tests via assert_cmd, clippy, and rustfmt |
+
 ### Common Features
 
 All templates include:
