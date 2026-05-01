@@ -20,6 +20,12 @@ Set of templates to start from scratch for different languages and stacks.
 | [python-cli](./python-cli) | Python CLI | CLI with Click, Pydantic models, UV package manager, pytest, and ruff |
 | [python-geo-cli](./python-geo-cli) | Geospatial CLI | Advanced spatial analysis with SedonaDB, QuackOSM, KeplerGL, GeoParquet, and H3 indexing |
 
+### Go
+
+| Template | Type | Description |
+|----------|------|-------------|
+| [go-cli](./go-cli) | Go CLI | Minimal CLI with Cobra, golangci-lint, and three testing levels |
+
 ### Common Features
 
 All templates include:
