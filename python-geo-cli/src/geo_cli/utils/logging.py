@@ -2,9 +2,7 @@
 
 import logging
 import logging.handlers
-import sys
 from pathlib import Path
-from typing import Optional
 
 from rich.console import Console
 from rich.logging import RichHandler
@@ -14,10 +12,10 @@ console = Console()
 
 def setup_logging(
     level: str = "INFO",
-    log_file: Optional[Path] = None,
+    log_file: Path | None = None,
     max_file_size_mb: int = 10,
     backup_count: int = 5,
-    format_string: Optional[str] = None
+    format_string: str | None = None,
 ) -> None:
     """Set up logging configuration with rich formatting.
 
@@ -47,7 +45,7 @@ def setup_logging(
         show_path=True,
         markup=True,
         rich_tracebacks=True,
-        tracebacks_show_locals=True
+        tracebacks_show_locals=True,
     )
     console_handler.setFormatter(logging.Formatter(format_string))
     console_handler.setLevel(log_level)
@@ -66,7 +64,7 @@ def setup_logging(
             log_file,
             maxBytes=max_file_size_mb * 1024 * 1024,
             backupCount=backup_count,
-            encoding='utf-8'
+            encoding="utf-8",
         )
         file_handler.setFormatter(logging.Formatter(file_format_string))
         file_handler.setLevel(log_level)
@@ -97,7 +95,7 @@ def get_logger(name: str) -> logging.Logger:
 class SpatialLoggerAdapter(logging.LoggerAdapter):
     """Logger adapter that adds spatial context information."""
 
-    def __init__(self, logger: logging.Logger, extra: Optional[dict] = None):
+    def __init__(self, logger: logging.Logger, extra: dict | None = None):
         """Initialize the spatial logger adapter."""
         super().__init__(logger, extra or {})
 
@@ -105,11 +103,11 @@ class SpatialLoggerAdapter(logging.LoggerAdapter):
         """Process log message to add spatial context."""
         if self.extra:
             spatial_info = []
-            if 'bbox' in self.extra:
+            if "bbox" in self.extra:
                 spatial_info.append(f"bbox={self.extra['bbox']}")
-            if 'crs' in self.extra:
+            if "crs" in self.extra:
                 spatial_info.append(f"crs={self.extra['crs']}")
-            if 'feature_count' in self.extra:
+            if "feature_count" in self.extra:
                 spatial_info.append(f"features={self.extra['feature_count']}")
 
             if spatial_info:
@@ -120,10 +118,10 @@ class SpatialLoggerAdapter(logging.LoggerAdapter):
 
 def log_spatial_operation(
     operation: str,
-    bbox: Optional[tuple] = None,
-    crs: Optional[str] = None,
-    feature_count: Optional[int] = None,
-    logger_name: str = "geo_cli"
+    bbox: tuple | None = None,
+    crs: str | None = None,
+    feature_count: int | None = None,
+    logger_name: str = "geo_cli",
 ) -> SpatialLoggerAdapter:
     """Create a logger adapter with spatial context.
 
@@ -137,16 +135,14 @@ def log_spatial_operation(
     Returns:
         SpatialLoggerAdapter with context information
     """
-    extra = {
-        'operation': operation
-    }
+    extra = {"operation": operation}
 
     if bbox:
-        extra['bbox'] = f"{bbox[0]:.3f},{bbox[1]:.3f},{bbox[2]:.3f},{bbox[3]:.3f}"
+        extra["bbox"] = f"{bbox[0]:.3f},{bbox[1]:.3f},{bbox[2]:.3f},{bbox[3]:.3f}"
     if crs:
-        extra['crs'] = crs
+        extra["crs"] = crs
     if feature_count is not None:
-        extra['feature_count'] = f"{feature_count:,}"
+        extra["feature_count"] = f"{feature_count:,}"
 
     logger = get_logger(logger_name)
     return SpatialLoggerAdapter(logger, extra)
@@ -154,8 +150,8 @@ def log_spatial_operation(
 
 def log_performance(func):
     """Decorator to log function performance metrics."""
-    import time
     import functools
+    import time
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
@@ -178,12 +174,7 @@ def log_performance(func):
 class ProgressLogger:
     """Logger for long-running operations with progress tracking."""
 
-    def __init__(
-        self,
-        operation: str,
-        total_steps: int,
-        logger_name: str = "geo_cli"
-    ):
+    def __init__(self, operation: str, total_steps: int, logger_name: str = "geo_cli"):
         """Initialize progress logger.
 
         Args:
@@ -213,15 +204,11 @@ class ProgressLogger:
 
 
 # Convenience function for quick setup
-def configure_basic_logging(level: str = "INFO", log_file: Optional[Path] = None):
+def configure_basic_logging(level: str = "INFO", log_file: Path | None = None):
     """Configure basic logging with sensible defaults.
 
     Args:
         level: Log level
         log_file: Optional log file path
     """
-    setup_logging(
-        level=level,
-        log_file=log_file,
-        format_string="%(message)s"
-    )
+    setup_logging(level=level, log_file=log_file, format_string="%(message)s")

@@ -14,48 +14,32 @@ app = click.Group(help="Create visualizations with KeplerGL")
 
 @app.command()
 @click.option(
-    "--input",
-    required=True,
-    type=click.Path(exists=True),
-    help="Input GeoJSON or GeoParquet file"
+    "--input", required=True, type=click.Path(exists=True), help="Input GeoJSON or GeoParquet file"
 )
 @click.option(
     "--output",
     type=click.Path(),
     default="output-map/visualization.html",
-    help="Output HTML file path"
+    help="Output HTML file path",
 )
 @click.option(
     "--basemap",
     type=click.Choice(["streets", "outdoor"]),
     default="streets",
-    help="Mapbox basemap style"
+    help="Mapbox basemap style",
 )
 @click.option(
-    "--h3-resolution",
-    type=int,
-    default=9,
-    help="H3 index resolution (0-15, default 9 ~174m)"
+    "--h3-resolution", type=int, default=9, help="H3 index resolution (0-15, default 9 ~174m)"
 )
-@click.option(
-    "--title",
-    default="Geospatial Visualization",
-    help="Map title"
-)
-def map(
-    input: str,
-    output: str,
-    basemap: str,
-    h3_resolution: int,
-    title: str
-):
+@click.option("--title", default="Geospatial Visualization", help="Map title")
+def map(input: str, output: str, basemap: str, h3_resolution: int, title: str):
     """Create an interactive map with H3 index layer."""
     input_path = Path(input)
     output_path = Path(output)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    console.print(f"[bold blue]🗺️  Creating visualization[/bold blue]")
+    console.print("[bold blue]🗺️  Creating visualization[/bold blue]")
     console.print(f"  Input: {input_path}")
     console.print(f"  Output: {output_path}")
     console.print(f"  Basemap: {basemap}")
@@ -68,7 +52,7 @@ def map(
                 output_path=output_path,
                 basemap=basemap,
                 h3_resolution=h3_resolution,
-                title=title
+                title=title,
             )
 
     except Exception as e:
@@ -80,45 +64,40 @@ def map(
 
 @app.command()
 @click.option(
-    "--output",
-    type=click.Path(),
-    default="kepler_config.json",
-    help="Output configuration file"
+    "--output", type=click.Path(), default="kepler_config.json", help="Output configuration file"
 )
 @click.option(
     "--style",
-    type=click.Choice(['light', 'dark', 'satellite']),
-    default='light',
-    help="Base map style"
+    type=click.Choice(["light", "dark", "satellite"]),
+    default="light",
+    help="Base map style",
 )
 def config(output: str, style: str):
     """Generate a KeplerGL configuration template."""
     output_path = Path(output)
 
-    console.print(f"[bold blue]⚙️  Generating KeplerGL configuration[/bold blue]")
+    console.print("[bold blue]⚙️  Generating KeplerGL configuration[/bold blue]")
 
     # Create a basic configuration template
     config = {
-        'version': 'v1',
-        'config': {
-            'visState': {
-                'layers': [],
-                'mapState': {
-                    'latitude': 0,
-                    'longitude': 0,
-                    'zoom': 1,
-                    'bearing': 0,
-                    'pitch': 0
+        "version": "v1",
+        "config": {
+            "visState": {
+                "layers": [],
+                "mapState": {"latitude": 0, "longitude": 0, "zoom": 1, "bearing": 0, "pitch": 0},
+                "mapStyle": {
+                    "styleType": "light"
+                    if style == "light"
+                    else "dark"
+                    if style == "dark"
+                    else "satellite"
                 },
-                'mapStyle': {
-                    'styleType': 'light' if style == 'light' else 'dark' if style == 'dark' else 'satellite'
-                }
             }
-        }
+        },
     }
 
     try:
-        with open(output_path, 'w') as f:
+        with open(output_path, "w") as f:
             json.dump(config, f, indent=2)
 
         console.print(f"[green]✅ Configuration saved: {output_path}[/green]")
@@ -127,5 +106,3 @@ def config(output: str, style: str):
     except Exception as e:
         console.print(f"[red]❌ Configuration generation failed: {e}[/red]")
         raise click.Abort()
-
-

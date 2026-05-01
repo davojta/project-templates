@@ -43,8 +43,10 @@ export function FeatureTable({
         : bVal.localeCompare(aVal);
     }
 
-    if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
-    if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
+    const aComp = aVal as string | number;
+    const bComp = bVal as string | number;
+    if (aComp < bComp) return sortDirection === "asc" ? -1 : 1;
+    if (aComp > bComp) return sortDirection === "asc" ? 1 : -1;
     return 0;
   });
 
