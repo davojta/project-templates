@@ -1,0 +1,174 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ─── nodejs-ts-cli ──────────────────────────────────────────────────────────
+  nodejs-ts-cli:
+    name: nodejs-ts-cli
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: nodejs-ts-cli
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: nodejs-ts-cli/package-lock.json
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Test
+        run: npm test
+
+  # ─── bun-cli ────────────────────────────────────────────────────────────────
+  bun-cli:
+    name: bun-cli
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: bun-cli
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - run: bun install
+
+      - name: Lint & format check (Biome CI)
+        run: bun x @biomejs/biome ci .
+
+      - name: Test
+        run: bun test
+
+  # ─── fe-react-mbx-map ───────────────────────────────────────────────────────
+  fe-react-mbx-map:
+    name: fe-react-mbx-map
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: fe-react-mbx-map
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: fe-react-mbx-map/package-lock.json
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+  # ─── bun-api-fe-review-geojson ──────────────────────────────────────────────
+  bun-api-fe-review-geojson:
+    name: bun-api-fe-review-geojson
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: bun-api-fe-review-geojson
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - run: bun install
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Format check
+        run: bunx prettier --check .
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Test
+        run: bun run test:ci
+
+  # ─── python-cli ─────────────────────────────────────────────────────────────
+  python-cli:
+    name: python-cli
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: python-cli
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: python-cli/uv.lock
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Format check
+        run: uv run ruff format --check .
+
+      - name: Test
+        run: uv run pytest
+
+  # ─── python-geo-cli ─────────────────────────────────────────────────────────
+  python-geo-cli-lint:
+    name: python-geo-cli / lint & format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint
+        run: uvx ruff check python-geo-cli/src/
+
+      - name: Format check
+        run: uvx ruff format --check python-geo-cli/src/
+
+  python-geo-cli-test:
+    name: python-geo-cli / test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: python-geo-cli
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: python-geo-cli/uv.lock
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: Typecheck
+        run: uv run pyright
+
+      - name: Test
+        run: uv run pytest
+        timeout-minutes: 20
