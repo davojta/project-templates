@@ -31,6 +31,7 @@ Collection of starter templates for different languages and stacks.
 | [nodejs-ts-cli](./nodejs-ts-cli) | CLI | Node.js |
 | [python-cli](./python-cli) | CLI | Python / uv |
 | [python-geo-cli](./python-geo-cli) | Geospatial CLI | Python / uv |
+| [go-cli](./go-cli) | CLI | Go |
 
 ## Root Setup
 
