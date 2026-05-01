@@ -32,6 +32,7 @@ Collection of starter templates for different languages and stacks.
 | [python-cli](./python-cli) | CLI | Python / uv |
 | [python-geo-cli](./python-geo-cli) | Geospatial CLI | Python / uv |
 | [go-cli](./go-cli) | CLI | Go |
+| [rust-cli](./rust-cli) | CLI | Rust / Cargo |
 
 ## Root Setup
 
