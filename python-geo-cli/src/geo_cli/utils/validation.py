@@ -1,20 +1,20 @@
 """Input validation utilities for geospatial operations."""
 
+import os
 import re
-from typing import Dict, List, Optional, Tuple, Union, Any
 from pathlib import Path
+from typing import Any
 
 import pyproj
-from shapely.geometry import Point, Polygon, box
-from pydantic import ValidationError
 
 
 class ValidationError(Exception):
     """Custom validation error for geospatial operations."""
+
     pass
 
 
-def validate_bbox(bbox_str: str) -> Tuple[float, float, float, float]:
+def validate_bbox(bbox_str: str) -> tuple[float, float, float, float]:
     """Validate and parse bounding box string.
 
     Args:
@@ -27,7 +27,7 @@ def validate_bbox(bbox_str: str) -> Tuple[float, float, float, float]:
         ValidationError: If bounding box is invalid
     """
     try:
-        parts = bbox_str.split(',')
+        parts = bbox_str.split(",")
         if len(parts) != 4:
             raise ValidationError("Bounding box must have 4 coordinates")
 
@@ -45,9 +45,13 @@ def validate_bbox(bbox_str: str) -> Tuple[float, float, float, float]:
 
         # Validate logical constraints
         if min_lon >= max_lon:
-            raise ValidationError(f"Minimum longitude {min_lon} must be less than maximum longitude {max_lon}")
+            raise ValidationError(
+                f"Minimum longitude {min_lon} must be less than maximum longitude {max_lon}"
+            )
         if min_lat >= max_lat:
-            raise ValidationError(f"Minimum latitude {min_lat} must be less than maximum latitude {max_lat}")
+            raise ValidationError(
+                f"Minimum latitude {min_lat} must be less than maximum latitude {max_lat}"
+            )
 
         return (min_lon, min_lat, max_lon, max_lat)
 
@@ -55,7 +59,7 @@ def validate_bbox(bbox_str: str) -> Tuple[float, float, float, float]:
         raise ValidationError(f"Invalid coordinate format: {e}")
 
 
-def validate_osm_tags(tags_str: str) -> Dict[str, List[str]]:
+def validate_osm_tags(tags_str: str) -> dict[str, list[str]]:
     """Validate and parse OSM tags string.
 
     Args:
@@ -72,13 +76,13 @@ def validate_osm_tags(tags_str: str) -> Dict[str, List[str]]:
 
     try:
         tags_dict = {}
-        tag_pairs = tags_str.split(',')
+        tag_pairs = tags_str.split(",")
 
         for pair in tag_pairs:
-            if ':' not in pair:
+            if ":" not in pair:
                 raise ValidationError(f"Invalid tag format: {pair}. Expected 'key:value'")
 
-            key, value = pair.split(':', 1)  # Split on first ':' only
+            key, value = pair.split(":", 1)  # Split on first ':' only
             key = key.strip()
             value = value.strip()
 
@@ -89,7 +93,7 @@ def validate_osm_tags(tags_str: str) -> Dict[str, List[str]]:
                 raise ValidationError("Tag value cannot be empty")
 
             # Validate tag format (OSM tags are typically lowercase with underscores)
-            if not re.match(r'^[a-z0-9_:-]+$', key):
+            if not re.match(r"^[a-z0-9_:-]+$", key):
                 raise ValidationError(f"Invalid tag key format: {key}")
 
             if key not in tags_dict:
@@ -102,7 +106,9 @@ def validate_osm_tags(tags_str: str) -> Dict[str, List[str]]:
         raise ValidationError(f"Error parsing tags: {e}")
 
 
-def validate_coordinates(coordinates: Union[str, Tuple[float, float], List[float]]) -> Tuple[float, float]:
+def validate_coordinates(
+    coordinates: str | tuple[float, float] | list[float],
+) -> tuple[float, float]:
     """Validate and normalize coordinates.
 
     Args:
@@ -116,7 +122,7 @@ def validate_coordinates(coordinates: Union[str, Tuple[float, float], List[float
     """
     if isinstance(coordinates, str):
         try:
-            parts = coordinates.split(',')
+            parts = coordinates.split(",")
             if len(parts) != 2:
                 raise ValidationError("Coordinates must be in 'lon,lat' format")
             lon, lat = map(float, parts)
@@ -159,10 +165,10 @@ def validate_crs(crs_string: str) -> str:
 
 
 def validate_file_path(
-    file_path: Union[str, Path],
+    file_path: str | Path,
     must_exist: bool = False,
-    allowed_extensions: Optional[List[str]] = None,
-    check_writable: bool = False
+    allowed_extensions: list[str] | None = None,
+    check_writable: bool = False,
 ) -> Path:
     """Validate file path.
 
@@ -188,7 +194,9 @@ def validate_file_path(
     if allowed_extensions:
         ext = path.suffix.lower()
         if ext not in allowed_extensions:
-            raise ValidationError(f"File extension '{ext}' not allowed. Allowed: {allowed_extensions}")
+            raise ValidationError(
+                f"File extension '{ext}' not allowed. Allowed: {allowed_extensions}"
+            )
 
     # Check if parent directory exists or can be created
     if not path.parent.exists():
@@ -211,7 +219,7 @@ def validate_file_path(
     return path
 
 
-def validate_geoparquet_file(file_path: Union[str, Path]) -> Path:
+def validate_geoparquet_file(file_path: str | Path) -> Path:
     """Validate that file is a valid GeoParquet file.
 
     Args:
@@ -223,17 +231,19 @@ def validate_geoparquet_file(file_path: Union[str, Path]) -> Path:
     Raises:
         ValidationError: If file is not a valid GeoParquet
     """
-    import os
 
-    path = validate_file_path(file_path, must_exist=True, allowed_extensions=['.geoparquet', '.parquet'])
+    path = validate_file_path(
+        file_path, must_exist=True, allowed_extensions=[".geoparquet", ".parquet"]
+    )
 
     try:
         # Try to read the file with GeoPandas
         import geopandas as gpd
+
         gdf = gpd.read_parquet(path)
 
         # Check if it has geometry column
-        if 'geometry' not in gdf.columns:
+        if "geometry" not in gdf.columns:
             raise ValidationError("File does not contain geometry column")
 
         # Check if CRS is defined
@@ -272,7 +282,7 @@ def validate_distance(distance: float, unit: str = "meters") -> float:
     return distance
 
 
-def validate_operation_params(operation: str, params: Dict[str, Any]) -> Dict[str, Any]:
+def validate_operation_params(operation: str, params: dict[str, Any]) -> dict[str, Any]:
     """Validate parameters for spatial operations.
 
     Args:
@@ -297,9 +307,17 @@ def validate_operation_params(operation: str, params: Dict[str, Any]) -> Dict[st
 
         # Validate predicate
         predicate = params.get("predicate", "ST_Intersects")
-        valid_predicates = ["ST_Intersects", "ST_Contains", "ST_Within", "ST_Touches", "ST_Overlaps"]
+        valid_predicates = [
+            "ST_Intersects",
+            "ST_Contains",
+            "ST_Within",
+            "ST_Touches",
+            "ST_Overlaps",
+        ]
         if predicate not in valid_predicates:
-            raise ValidationError(f"Invalid spatial predicate: {predicate}. Valid: {valid_predicates}")
+            raise ValidationError(
+                f"Invalid spatial predicate: {predicate}. Valid: {valid_predicates}"
+            )
 
     elif operation == "reproject":
         if "target_crs" not in params:
@@ -339,6 +357,6 @@ def validate_hex_color(color: str) -> str:
     Raises:
         ValidationError: If color is invalid
     """
-    if not re.match(r'^#[0-9A-Fa-f]{6}$', color):
+    if not re.match(r"^#[0-9A-Fa-f]{6}$", color):
         raise ValidationError(f"Invalid hex color: {color}. Expected format: #RRGGBB")
     return color.upper()

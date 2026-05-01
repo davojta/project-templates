@@ -6,18 +6,18 @@ import warnings
 warnings.filterwarnings(
     "ignore",
     message="Conversion of an array with ndim > 0 to a scalar is deprecated",
-    category=DeprecationWarning
+    category=DeprecationWarning,
 )
 
-import click
-from rich.console import Console
+import click  # noqa: E402
+from rich.console import Console  # noqa: E402
 
-from geo_cli.cli import download, process, visualize
+from geo_cli.cli import download, process, visualize  # noqa: E402
 
 console = Console()
 app = click.Group(
     help="Geospatial CLI for OSM data processing and analysis",
-    context_settings=dict(help_option_names=["-h", "--help"])
+    context_settings=dict(help_option_names=["-h", "--help"]),
 )
 
 # Add command groups

@@ -40,3 +40,5 @@ export interface BasemapConfig {
   name: string;
   styleUrl: string;
 }
+
+export type ReviewStatus = "pending" | "flagged" | "approved";

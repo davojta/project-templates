@@ -1,8 +1,8 @@
 """Download commands for OSM data."""
 
-import click
 from pathlib import Path
-from typing import Dict, List, Optional
+
+import click
 from rich.console import Console
 
 console = Console()
@@ -10,33 +10,20 @@ app = click.Group(help="Download OSM data using QuackOSM")
 
 
 @app.command()
-@click.option(
-    "--bbox",
-    required=True,
-    help="Bounding box: min_lon,min_lat,max_lon,max_lat"
-)
+@click.option("--bbox", required=True, help="Bounding box: min_lon,min_lat,max_lon,max_lat")
 @click.option(
     "--tags",
-    help="OSM tags filter: key:value,key:value (e.g., building:residential,highway:primary)"
+    help="OSM tags filter: key:value,key:value (e.g., building:residential,highway:primary)",
 )
 @click.option(
     "--output",
     type=click.Path(),
     default="data/processed",
-    help="Output directory for processed data"
+    help="Output directory for processed data",
 )
-@click.option(
-    "--name",
-    default="osm_data",
-    help="Output filename (without extension)"
-)
-@click.option(
-    "--timeout",
-    default=300,
-    type=int,
-    help="Download timeout in seconds"
-)
-def region(bbox: str, tags: Optional[str], output: str, name: str, timeout: int):
+@click.option("--name", default="osm_data", help="Output filename (without extension)")
+@click.option("--timeout", default=300, type=int, help="Download timeout in seconds")
+def region(bbox: str, tags: str | None, output: str, name: str, timeout: int):
     """Download OSM data for a specific region."""
     try:
         # Parse bbox
@@ -60,7 +47,7 @@ def region(bbox: str, tags: Optional[str], output: str, name: str, timeout: int)
         raise click.Abort()
 
     # Parse tags
-    tags_dict: Optional[Dict[str, List[str]]] = None
+    tags_dict: dict[str, list[str]] | None = None
     if tags:
         tags_dict = {}
         try:
@@ -73,7 +60,9 @@ def region(bbox: str, tags: Optional[str], output: str, name: str, timeout: int)
                 tags_dict[key].append(value)
         except ValueError as e:
             console.print(f"[red]Invalid tags format: {e}[/red]")
-            console.print("[yellow]Expected format: key:value,key:value (e.g., building:residential,highway:primary)[/yellow]")
+            console.print(
+                "[yellow]Expected format: key:value,key:value (e.g., building:residential,highway:primary)[/yellow]"
+            )
             raise click.Abort()
 
     # Setup output paths
@@ -87,7 +76,7 @@ def region(bbox: str, tags: Optional[str], output: str, name: str, timeout: int)
     final_path = output_path / f"{name}.geoparquet"
 
     # Show download info
-    console.print(f"[bold blue]🌍 Downloading OSM data[/bold blue]")
+    console.print("[bold blue]🌍 Downloading OSM data[/bold blue]")
     console.print(f"  Bounding box: {bbox}")
     if tags_dict:
         console.print(f"  Tags: {tags_dict}")
@@ -108,16 +97,13 @@ def region(bbox: str, tags: Optional[str], output: str, name: str, timeout: int)
             # )
 
             # For now, create a placeholder
-            import pandas as pd
             import geopandas as gpd
             from shapely.geometry import box
 
             # Create a simple placeholder GeoDataFrame
             geom = box(min_lon, min_lat, max_lon, max_lat)
             gdf = gpd.GeoDataFrame(
-                {'name': [f'{name}_region'], 'area': [geom.area]},
-                geometry=[geom],
-                crs='EPSG:4326'
+                {"name": [f"{name}_region"], "area": [geom.area]}, geometry=[geom], crs="EPSG:4326"
             )
 
             # Save as GeoParquet
@@ -132,30 +118,14 @@ def region(bbox: str, tags: Optional[str], output: str, name: str, timeout: int)
 
 
 @app.command()
-@click.option(
-    "--location",
-    required=True,
-    help="Location name (city, country, etc.)"
-)
-@click.option(
-    "--tags",
-    help="OSM tags filter: key:value,key:value"
-)
-@click.option(
-    "--output",
-    type=click.Path(),
-    default="data/processed",
-    help="Output directory"
-)
-@click.option(
-    "--name",
-    default=None,
-    help="Output filename (defaults to location name)"
-)
-def place(location: str, tags: Optional[str], output: str, name: Optional[str]):
+@click.option("--location", required=True, help="Location name (city, country, etc.)")
+@click.option("--tags", help="OSM tags filter: key:value,key:value")
+@click.option("--output", type=click.Path(), default="data/processed", help="Output directory")
+@click.option("--name", default=None, help="Output filename (defaults to location name)")
+def place(location: str, tags: str | None, output: str, name: str | None):
     """Download OSM data for a named place (city, country, etc.)."""
     # TODO: Implement geocoding and place-based download
-    console.print(f"[yellow]Place-based download not yet implemented[/yellow]")
+    console.print("[yellow]Place-based download not yet implemented[/yellow]")
     console.print(f"Would download data for: {location}")
 
     # For now, suggest using bbox

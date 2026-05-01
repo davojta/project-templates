@@ -1,15 +1,15 @@
 """Spatial data processor using SedonaDB."""
 
+import logging
 import warnings
 from pathlib import Path
-from typing import Dict, List, Optional, Union, Any
-import logging
+from typing import Any
 
 # Filter internal pyproj deprecation warning that we cannot fix
 warnings.filterwarnings(
     "ignore",
     message="Conversion of an array with ndim > 0 to a scalar is deprecated",
-    category=DeprecationWarning
+    category=DeprecationWarning,
 )
 
 logger = logging.getLogger(__name__)
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class SedonaProcessor:
     """High-performance spatial operations using SedonaDB."""
 
-    def __init__(self, memory_limit: Optional[str] = None):
+    def __init__(self, memory_limit: str | None = None):
         """Initialize SedonaDB processor.
 
         Args:
@@ -38,7 +38,7 @@ class SedonaProcessor:
         #     logger.warning(f"SedonaDB not available: {e}")
         #     logger.warning("Falling back to GeoPandas operations")
 
-    def load_geoparquet(self, parquet_path: Union[str, Path], table_name: str) -> None:
+    def load_geoparquet(self, parquet_path: str | Path, table_name: str) -> None:
         """Load GeoParquet data into SedonaDB.
 
         Args:
@@ -54,11 +54,12 @@ class SedonaProcessor:
 
         # TODO: Implement SedonaDB loading
         # For now, store the data for later use
-        if not hasattr(self, '_data'):
+        if not hasattr(self, "_data"):
             self._data = {}
 
         try:
             import geopandas as gpd
+
             gdf = gpd.read_parquet(parquet_path)
             self._data[table_name] = gdf
             logger.info(f"Loaded {len(gdf)} features")
@@ -72,7 +73,7 @@ class SedonaProcessor:
         left_table: str,
         right_table: str,
         predicate: str = "ST_Intersects",
-        how: str = "inner"
+        how: str = "inner",
     ):
         """Perform spatial join between two tables.
 
@@ -89,7 +90,11 @@ class SedonaProcessor:
 
         # TODO: Implement SedonaDB spatial join
         # For now, use GeoPandas fallback
-        if not hasattr(self, '_data') or left_table not in self._data or right_table not in self._data:
+        if (
+            not hasattr(self, "_data")
+            or left_table not in self._data
+            or right_table not in self._data
+        ):
             raise ValueError(f"One or both tables not loaded: {left_table}, {right_table}")
 
         try:
@@ -98,13 +103,13 @@ class SedonaProcessor:
 
             # Perform spatial join with GeoPandas
             if predicate == "ST_Intersects":
-                result = left_gdf.sjoin(right_gdf, how=how, predicate='intersects')
+                result = left_gdf.sjoin(right_gdf, how=how, predicate="intersects")
             elif predicate == "ST_Contains":
-                result = left_gdf.sjoin(right_gdf, how=how, predicate='contains')
+                result = left_gdf.sjoin(right_gdf, how=how, predicate="contains")
             elif predicate == "ST_Within":
-                result = left_gdf.sjoin(right_gdf, how=how, predicate='within')
+                result = left_gdf.sjoin(right_gdf, how=how, predicate="within")
             elif predicate == "ST_Touches":
-                result = left_gdf.sjoin(right_gdf, how=how, predicate='touches')
+                result = left_gdf.sjoin(right_gdf, how=how, predicate="touches")
             else:
                 raise ValueError(f"Unsupported spatial predicate: {predicate}")
 
@@ -115,12 +120,7 @@ class SedonaProcessor:
             logger.error(f"Spatial join failed: {e}")
             raise
 
-    def buffer(
-        self,
-        table_name: str,
-        distance: float,
-        distance_unit: str = "meters"
-    ):
+    def buffer(self, table_name: str, distance: float, distance_unit: str = "meters"):
         """Create buffer geometries.
 
         Args:
@@ -133,7 +133,7 @@ class SedonaProcessor:
         """
         logger.info(f"Creating buffer: {table_name} with {distance} {distance_unit}")
 
-        if not hasattr(self, '_data') or table_name not in self._data:
+        if not hasattr(self, "_data") or table_name not in self._data:
             raise ValueError(f"Table not loaded: {table_name}")
 
         try:
@@ -156,15 +156,16 @@ class SedonaProcessor:
             # Check if we need to reproject for accurate buffering
             if gdf.crs and gdf.crs.is_geographic and distance_unit != "degrees":
                 # Project to UTM for accurate distance calculations
-                import pyproj
 
                 # Calculate UTM zone from centroid
                 centroid = gdf.geometry.union_all().centroid
                 # Extract scalar coordinates to avoid deprecation warning
-                centroid_x = float(centroid.x) if hasattr(centroid.x, 'item') else centroid.x
-                centroid_y = float(centroid.y) if hasattr(centroid.y, 'item') else centroid.y
+                centroid_x = float(centroid.x) if hasattr(centroid.x, "item") else centroid.x
+                centroid_y = float(centroid.y) if hasattr(centroid.y, "item") else centroid.y
                 utm_zone = int((centroid_x + 180) // 6) + 1
-                utm_crs = f"EPSG:{32600 + utm_zone}" if centroid_y >= 0 else f"EPSG:{32700 + utm_zone}"
+                utm_crs = (
+                    f"EPSG:{32600 + utm_zone}" if centroid_y >= 0 else f"EPSG:{32700 + utm_zone}"
+                )
 
                 # Convert distance to meters for UTM projection
                 if distance_unit == "meters":
@@ -172,18 +173,22 @@ class SedonaProcessor:
                 elif distance_unit == "kilometers":
                     distance_meters = distance * 1000
                 else:
-                    raise ValueError(f"Unsupported distance unit for projected CRS: {distance_unit}")
+                    raise ValueError(
+                        f"Unsupported distance unit for projected CRS: {distance_unit}"
+                    )
 
                 # Reproject, buffer, and reproject back
                 gdf_projected = gdf.to_crs(utm_crs)
-                buffered_gdf['geometry'] = gdf_projected.geometry.buffer(distance_meters).to_crs(gdf.crs)
+                buffered_gdf["geometry"] = gdf_projected.geometry.buffer(distance_meters).to_crs(
+                    gdf.crs
+                )
             else:
                 # Use degrees directly or already in projected CRS
                 if distance_unit == "degrees":
-                    buffered_gdf['geometry'] = gdf.geometry.buffer(distance_degrees)
+                    buffered_gdf["geometry"] = gdf.geometry.buffer(distance_degrees)
                 else:
                     # Buffer in the current CRS (assuming it's projected)
-                    buffered_gdf['geometry'] = gdf.geometry.buffer(distance_degrees)
+                    buffered_gdf["geometry"] = gdf.geometry.buffer(distance_degrees)
 
             logger.info(f"Buffer completed: {len(buffered_gdf)} features")
             return buffered_gdf
@@ -192,7 +197,7 @@ class SedonaProcessor:
             logger.error(f"Buffer operation failed: {e}")
             raise
 
-    def to_geoparquet(self, table_name: str, output_path: Union[str, Path]) -> None:
+    def to_geoparquet(self, table_name: str, output_path: str | Path) -> None:
         """Export table to GeoParquet format.
 
         Args:
@@ -202,7 +207,7 @@ class SedonaProcessor:
         output_path = Path(output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        if not hasattr(self, '_data') or table_name not in self._data:
+        if not hasattr(self, "_data") or table_name not in self._data:
             raise ValueError(f"Table not found: {table_name}")
 
         try:
@@ -230,7 +235,7 @@ class SedonaProcessor:
         logger.warning("SedonaDB SQL not yet implemented, returning placeholder")
         return None
 
-    def get_table_info(self, table_name: str) -> Dict:
+    def get_table_info(self, table_name: str) -> dict:
         """Get information about a loaded table.
 
         Args:
@@ -239,7 +244,7 @@ class SedonaProcessor:
         Returns:
             Dictionary with table information
         """
-        if not hasattr(self, '_data') or table_name not in self._data:
+        if not hasattr(self, "_data") or table_name not in self._data:
             return {"error": f"Table not found: {table_name}"}
 
         gdf = self._data[table_name]
@@ -250,5 +255,5 @@ class SedonaProcessor:
             "columns": list(gdf.columns),
             "crs": str(gdf.crs),
             "geometry_types": gdf.geometry.geom_type.value_counts().to_dict(),
-            "bounds": gdf.total_bounds.tolist() if not gdf.empty else None
+            "bounds": gdf.total_bounds.tolist() if not gdf.empty else None,
         }

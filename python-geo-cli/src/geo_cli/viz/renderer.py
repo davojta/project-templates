@@ -4,7 +4,6 @@ import json
 import logging
 import re
 from pathlib import Path
-from typing import Union
 
 import geopandas as gpd
 
@@ -14,7 +13,7 @@ from .indexer import create_h3_index
 logger = logging.getLogger(__name__)
 
 
-def load_data(source: Union[str, Path, gpd.GeoDataFrame]) -> gpd.GeoDataFrame:
+def load_data(source: str | Path | gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     """Load geospatial data from GeoJSON, GeoParquet file or GeoDataFrame.
 
     Args:
@@ -153,8 +152,8 @@ def _create_index_layer_config() -> dict:
 
 
 def create_map(
-    source: Union[str, Path, gpd.GeoDataFrame],
-    output_path: Union[str, Path],
+    source: str | Path | gpd.GeoDataFrame,
+    output_path: str | Path,
     basemap: str = DEFAULT_BASEMAP,
     h3_resolution: int = 9,
     title: str = "Geospatial Visualization",
@@ -398,20 +397,12 @@ def create_map(
     html_content = output_path.read_text()
 
     html_content = html_content.replace(
-        "https://www.googletagmanager.com/gtag/js?id=UA-64694404-19",
-        ""
+        "https://www.googletagmanager.com/gtag/js?id=UA-64694404-19", ""
     )
     html_content = re.sub(
-        r"<script>\s*window\.dataLayer.*?</script>",
-        "",
-        html_content,
-        flags=re.DOTALL
+        r"<script>\s*window\.dataLayer.*?</script>", "", html_content, flags=re.DOTALL
     )
-    html_content = re.sub(
-        r"<title>.*?</title>",
-        f"<title>{title}</title>",
-        html_content
-    )
+    html_content = re.sub(r"<title>.*?</title>", f"<title>{title}</title>", html_content)
 
     output_path.write_text(html_content)
     logger.info(f"Saved map to {output_path}")

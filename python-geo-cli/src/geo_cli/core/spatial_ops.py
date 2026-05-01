@@ -1,15 +1,14 @@
 """Common spatial analysis operations."""
 
-import warnings
-from typing import Union, Optional, Dict, Any, List
 import logging
-from pathlib import Path
+import warnings
+from typing import Any
 
 # Filter internal pyproj deprecation warning that we cannot fix
 warnings.filterwarnings(
     "ignore",
     message="Conversion of an array with ndim > 0 to a scalar is deprecated",
-    category=DeprecationWarning
+    category=DeprecationWarning,
 )
 
 logger = logging.getLogger(__name__)
@@ -19,10 +18,7 @@ class SpatialOperations:
     """Collection of common spatial analysis operations."""
 
     @staticmethod
-    def calculate_area(
-        geometry,
-        unit: str = "square_meters"
-    ) -> float:
+    def calculate_area(geometry, unit: str = "square_meters") -> float:
         """Calculate the area of a geometry.
 
         Args:
@@ -38,13 +34,17 @@ class SpatialOperations:
 
             if unit == "square_meters":
                 # Project to an appropriate UTM zone for accurate area calculation
-                if hasattr(geometry, 'centroid'):
+                if hasattr(geometry, "centroid"):
                     centroid = geometry.centroid
                     # Extract scalar coordinates to avoid deprecation warning
-                    centroid_x = float(centroid.x) if hasattr(centroid.x, 'item') else centroid.x
-                    centroid_y = float(centroid.y) if hasattr(centroid.y, 'item') else centroid.y
+                    centroid_x = float(centroid.x) if hasattr(centroid.x, "item") else centroid.x
+                    centroid_y = float(centroid.y) if hasattr(centroid.y, "item") else centroid.y
                     utm_zone = int((centroid_x + 180) // 6) + 1
-                    utm_crs = f"EPSG:{32600 + utm_zone}" if centroid_y >= 0 else f"EPSG:{32700 + utm_zone}"
+                    utm_crs = (
+                        f"EPSG:{32600 + utm_zone}"
+                        if centroid_y >= 0
+                        else f"EPSG:{32700 + utm_zone}"
+                    )
 
                     wgs84 = pyproj.CRS("EPSG:4326")
                     utm = pyproj.CRS(utm_crs)
@@ -69,10 +69,7 @@ class SpatialOperations:
             raise
 
     @staticmethod
-    def calculate_length(
-        geometry,
-        unit: str = "meters"
-    ) -> float:
+    def calculate_length(geometry, unit: str = "meters") -> float:
         """Calculate the length of a line geometry.
 
         Args:
@@ -86,18 +83,22 @@ class SpatialOperations:
             import pyproj
             from shapely.ops import transform
 
-            if not hasattr(geometry, 'length'):
+            if not hasattr(geometry, "length"):
                 raise ValueError("Geometry does not have length")
 
             if unit == "meters":
                 # Project to an appropriate UTM zone for accurate length calculation
-                if hasattr(geometry, 'centroid'):
+                if hasattr(geometry, "centroid"):
                     centroid = geometry.centroid
                     # Extract scalar coordinates to avoid deprecation warning
-                    centroid_x = float(centroid.x) if hasattr(centroid.x, 'item') else centroid.x
-                    centroid_y = float(centroid.y) if hasattr(centroid.y, 'item') else centroid.y
+                    centroid_x = float(centroid.x) if hasattr(centroid.x, "item") else centroid.x
+                    centroid_y = float(centroid.y) if hasattr(centroid.y, "item") else centroid.y
                     utm_zone = int((centroid_x + 180) // 6) + 1
-                    utm_crs = f"EPSG:{32600 + utm_zone}" if centroid_y >= 0 else f"EPSG:{32700 + utm_zone}"
+                    utm_crs = (
+                        f"EPSG:{32600 + utm_zone}"
+                        if centroid_y >= 0
+                        else f"EPSG:{32700 + utm_zone}"
+                    )
 
                     wgs84 = pyproj.CRS("EPSG:4326")
                     utm = pyproj.CRS(utm_crs)
@@ -146,11 +147,8 @@ class SpatialOperations:
 
     @staticmethod
     def find_nearest_features(
-        query_points,
-        features,
-        max_distance: Optional[float] = None,
-        max_results: int = 5
-    ) -> List[Dict]:
+        query_points, features, max_distance: float | None = None, max_results: int = 5
+    ) -> list[dict]:
         """Find the nearest features to query points.
 
         Args:
@@ -164,6 +162,7 @@ class SpatialOperations:
         """
         try:
             from shapely.geometry import Point
+
             results = []
 
             for i, query_point in enumerate(query_points):
@@ -176,20 +175,15 @@ class SpatialOperations:
                     distance = query_point.distance(feature.geometry)
 
                     if max_distance is None or distance <= max_distance:
-                        nearest_features.append({
-                            'feature_index': j,
-                            'distance': distance,
-                            'feature': feature
-                        })
+                        nearest_features.append(
+                            {"feature_index": j, "distance": distance, "feature": feature}
+                        )
 
                 # Sort by distance and take top results
-                nearest_features.sort(key=lambda x: x['distance'])
+                nearest_features.sort(key=lambda x: x["distance"])
                 nearest_features = nearest_features[:max_results]
 
-                results.append({
-                    'query_point_index': i,
-                    'nearest_features': nearest_features
-                })
+                results.append({"query_point_index": i, "nearest_features": nearest_features})
 
             return results
 
@@ -198,11 +192,7 @@ class SpatialOperations:
             raise
 
     @staticmethod
-    def cluster_points(
-        points,
-        eps: float = 0.001,
-        min_samples: int = 2
-    ) -> Dict[str, Any]:
+    def cluster_points(points, eps: float = 0.001, min_samples: int = 2) -> dict[str, Any]:
         """Cluster points using DBSCAN algorithm.
 
         Args:
@@ -216,11 +206,14 @@ class SpatialOperations:
         try:
             import numpy as np
             from sklearn.cluster import DBSCAN
-            from shapely.geometry import Point
 
             # Convert points to numpy array
-            coords = np.array([(p.x if hasattr(p, 'x') else p[0],
-                               p.y if hasattr(p, 'y') else p[1]) for p in points])
+            coords = np.array(
+                [
+                    (p.x if hasattr(p, "x") else p[0], p.y if hasattr(p, "y") else p[1])
+                    for p in points
+                ]
+            )
 
             # Perform clustering
             clustering = DBSCAN(eps=eps, min_samples=min_samples).fit(coords)
@@ -239,19 +232,19 @@ class SpatialOperations:
                     clusters[label].append(i)
 
             return {
-                'clusters': clusters,
-                'noise_points': noise_points,
-                'num_clusters': len(clusters),
-                'num_noise_points': len(noise_points)
+                "clusters": clusters,
+                "noise_points": noise_points,
+                "num_clusters": len(clusters),
+                "num_noise_points": len(noise_points),
             }
 
         except ImportError:
             logger.warning("scikit-learn not available for clustering")
             return {
-                'clusters': {},
-                'noise_points': list(range(len(points))),
-                'num_clusters': 0,
-                'num_noise_points': len(points)
+                "clusters": {},
+                "noise_points": list(range(len(points))),
+                "num_clusters": 0,
+                "num_noise_points": len(points),
             }
 
         except Exception as e:
@@ -260,10 +253,8 @@ class SpatialOperations:
 
     @staticmethod
     def calculate_density(
-        features,
-        area: Optional[float] = None,
-        unit: str = "features_per_sq_km"
-    ) -> Dict[str, float]:
+        features, area: float | None = None, unit: str = "features_per_sq_km"
+    ) -> dict[str, float]:
         """Calculate feature density.
 
         Args:
@@ -275,19 +266,19 @@ class SpatialOperations:
             Dictionary with density metrics
         """
         try:
-            from shapely.geometry import Point, Polygon, LineString
+            from shapely.geometry import Polygon
 
             num_features = len(features)
 
             if area is None:
                 # Calculate area based on feature extent
-                all_geometries = [f.geometry if hasattr(f, 'geometry') else f for f in features]
+                all_geometries = [f.geometry if hasattr(f, "geometry") else f for f in features]
 
                 if all_geometries:
                     import geopandas as gpd
 
                     # Create a GeoDataFrame to get bounds
-                    gdf = gpd.GeoDataFrame(geometry=all_geometries, crs='EPSG:4326')
+                    gdf = gpd.GeoDataFrame(geometry=all_geometries, crs="EPSG:4326")
 
                     # Calculate bounding box area for point datasets
                     union_geom = gdf.geometry.union_all()
@@ -297,13 +288,16 @@ class SpatialOperations:
                         bounds = gdf.total_bounds  # [minx, miny, maxx, maxy]
                         # Create a polygon from bounds
                         from shapely.geometry import Polygon
-                        bbox_polygon = Polygon([
-                            (bounds[0], bounds[1]),
-                            (bounds[2], bounds[1]),
-                            (bounds[2], bounds[3]),
-                            (bounds[0], bounds[3]),
-                            (bounds[0], bounds[1])
-                        ])
+
+                        bbox_polygon = Polygon(
+                            [
+                                (bounds[0], bounds[1]),
+                                (bounds[2], bounds[1]),
+                                (bounds[2], bounds[3]),
+                                (bounds[0], bounds[3]),
+                                (bounds[0], bounds[1]),
+                            ]
+                        )
                         area_geom = bbox_polygon
                     else:
                         area_geom = union_geom
@@ -333,12 +327,7 @@ class SpatialOperations:
             else:
                 density = 0
 
-            return {
-                'num_features': num_features,
-                'area': area,
-                'density': density,
-                'unit': unit
-            }
+            return {"num_features": num_features, "area": area, "density": density, "unit": unit}
 
         except Exception as e:
             logger.error(f"Density calculation failed: {e}")

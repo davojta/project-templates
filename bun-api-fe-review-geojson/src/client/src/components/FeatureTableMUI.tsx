@@ -54,9 +54,9 @@ export function FeatureTableMUI({
     const comparison =
       typeof aVal === "string" && typeof bVal === "string"
         ? aVal.localeCompare(bVal)
-        : aVal < bVal
+        : (aVal as string | number) < (bVal as string | number)
           ? -1
-          : aVal > bVal
+          : (aVal as string | number) > (bVal as string | number)
             ? 1
             : 0;
 

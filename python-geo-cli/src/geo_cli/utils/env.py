@@ -2,11 +2,11 @@
 
 import os
 from pathlib import Path
-from typing import Optional
+
 from dotenv import load_dotenv
 
 
-def load_env(env_file: Optional[str] = None) -> None:
+def load_env(env_file: str | None = None) -> None:
     """Load environment variables from .env file.
 
     Args:
@@ -20,7 +20,7 @@ def load_env(env_file: Optional[str] = None) -> None:
         load_dotenv()
 
 
-def get_mapbox_token() -> Optional[str]:
+def get_mapbox_token() -> str | None:
     """Get Mapbox access token from environment variables.
 
     Returns:
