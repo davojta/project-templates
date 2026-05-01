@@ -82,6 +82,7 @@ def spatial(
 
             # Perform simple operation based on type
             if operation == "buffer":
+                assert distance is not None  # validated at line 51-53
                 # Buffer operation with proper CRS handling
                 result_gdf = gdf.copy()
 

@@ -7,8 +7,39 @@ on:
     branches: [main]
 
 jobs:
+  # ─── detect changed templates ────────────────────────────────────────────────
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      nodejs-ts-cli: ${{ steps.filter.outputs.nodejs-ts-cli }}
+      bun-cli: ${{ steps.filter.outputs.bun-cli }}
+      fe-react-mbx-map: ${{ steps.filter.outputs.fe-react-mbx-map }}
+      bun-api-fe-review-geojson: ${{ steps.filter.outputs.bun-api-fe-review-geojson }}
+      python-cli: ${{ steps.filter.outputs.python-cli }}
+      python-geo-cli: ${{ steps.filter.outputs.python-geo-cli }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            nodejs-ts-cli:
+              - 'nodejs-ts-cli/**'
+            bun-cli:
+              - 'bun-cli/**'
+            fe-react-mbx-map:
+              - 'fe-react-mbx-map/**'
+            bun-api-fe-review-geojson:
+              - 'bun-api-fe-review-geojson/**'
+            python-cli:
+              - 'python-cli/**'
+            python-geo-cli:
+              - 'python-geo-cli/**'
+
   # ─── nodejs-ts-cli ──────────────────────────────────────────────────────────
   nodejs-ts-cli:
+    needs: changes
+    if: needs.changes.outputs.nodejs-ts-cli == 'true'
     name: nodejs-ts-cli
     runs-on: ubuntu-latest
     defaults:
@@ -33,6 +64,8 @@ jobs:
 
   # ─── bun-cli ────────────────────────────────────────────────────────────────
   bun-cli:
+    needs: changes
+    if: needs.changes.outputs.bun-cli == 'true'
     name: bun-cli
     runs-on: ubuntu-latest
     defaults:
@@ -53,6 +86,8 @@ jobs:
 
   # ─── fe-react-mbx-map ───────────────────────────────────────────────────────
   fe-react-mbx-map:
+    needs: changes
+    if: needs.changes.outputs.fe-react-mbx-map == 'true'
     name: fe-react-mbx-map
     runs-on: ubuntu-latest
     defaults:
@@ -80,6 +115,8 @@ jobs:
 
   # ─── bun-api-fe-review-geojson ──────────────────────────────────────────────
   bun-api-fe-review-geojson:
+    needs: changes
+    if: needs.changes.outputs.bun-api-fe-review-geojson == 'true'
     name: bun-api-fe-review-geojson
     runs-on: ubuntu-latest
     defaults:
@@ -106,6 +143,8 @@ jobs:
 
   # ─── python-cli ─────────────────────────────────────────────────────────────
   python-cli:
+    needs: changes
+    if: needs.changes.outputs.python-cli == 'true'
     name: python-cli
     runs-on: ubuntu-latest
     defaults:
@@ -133,18 +172,33 @@ jobs:
 
   # ─── python-geo-cli ─────────────────────────────────────────────────────────
   python-geo-cli-lint:
+    needs: changes
+    if: needs.changes.outputs.python-geo-cli == 'true'
     name: python-geo-cli / lint & format
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: python-geo-cli
     steps:
       - uses: actions/checkout@v4
 
+      - uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: python-geo-cli/uv.lock
+
+      - name: Install dev dependencies
+        run: uv sync --group dev
+
       - name: Lint
-        run: uvx ruff check python-geo-cli/src/
+        run: uv run ruff check src/
 
       - name: Format check
-        run: uvx ruff format --check python-geo-cli/src/
+        run: uv run ruff format --check src/
 
   python-geo-cli-test:
+    needs: changes
+    if: needs.changes.outputs.python-geo-cli == 'true'
     name: python-geo-cli / test
     runs-on: ubuntu-latest
     defaults:
@@ -164,7 +218,7 @@ jobs:
           cache-dependency-glob: python-geo-cli/uv.lock
 
       - name: Install dependencies
-        run: uv sync --extra dev
+        run: uv sync --extra dev --extra viz
 
       - name: Typecheck
         run: uv run pyright

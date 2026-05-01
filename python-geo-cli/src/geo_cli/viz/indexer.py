@@ -1,11 +1,8 @@
 """H3 spatial indexing for geospatial data using SRAI."""
 
-from typing import TYPE_CHECKING
+from typing import cast
 
 import geopandas as gpd
-
-if TYPE_CHECKING:
-    pass
 
 
 def create_h3_index(gdf: gpd.GeoDataFrame, resolution: int = 5) -> gpd.GeoDataFrame:
@@ -35,6 +32,6 @@ def create_h3_index(gdf: gpd.GeoDataFrame, resolution: int = 5) -> gpd.GeoDataFr
     index_gdf["feature_count"] = index_gdf.index.map(region_counts).fillna(0).astype(int)
     index_gdf["normalized_count"] = index_gdf.index.map(normalized).fillna(0.0)
 
-    index_gdf = index_gdf[index_gdf["feature_count"] > 0]
+    index_gdf = cast(gpd.GeoDataFrame, index_gdf[index_gdf["feature_count"] > 0].copy())
 
     return index_gdf

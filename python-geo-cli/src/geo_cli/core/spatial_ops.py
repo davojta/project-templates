@@ -205,7 +205,7 @@ class SpatialOperations:
         """
         try:
             import numpy as np
-            from sklearn.cluster import DBSCAN
+            from sklearn.cluster import DBSCAN  # type: ignore[import-untyped]
 
             # Convert points to numpy array
             coords = np.array(
@@ -254,7 +254,7 @@ class SpatialOperations:
     @staticmethod
     def calculate_density(
         features, area: float | None = None, unit: str = "features_per_sq_km"
-    ) -> dict[str, float]:
+    ) -> dict[str, int | float | str]:
         """Calculate feature density.
 
         Args:
