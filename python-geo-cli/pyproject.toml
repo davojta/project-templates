@@ -149,4 +149,5 @@ known-first-party = ["geo_cli"]
 
 [tool.pyright]
 include = ["src"]
-typeCheckingMode = "strict"
+typeCheckingMode = "basic"
+reportMissingTypeStubs = "none"

@@ -47,6 +47,7 @@ class DownloadConfig(BaseModel):
     tags: list[OSMTag] = Field(default_factory=list, description="OSM tags to filter by")
     output_dir: Path = Field(default=Path("data/processed"), description="Output directory")
     filename: str = Field(default="osm_data", description="Output filename (without extension)")
+    include_all_tags: bool = Field(default=False, description="Download all OSM tags without filtering")
     timeout: int = Field(default=300, ge=1, le=3600, description="Download timeout in seconds")
     use_cache: bool = Field(default=True, description="Use cached data when available")
     cache_dir: Path = Field(default=Path("data/cache"), description="Cache directory")

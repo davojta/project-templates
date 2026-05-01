@@ -166,7 +166,7 @@ class OSMDownloader:
 
         logger.info(f"Cleared {len(cache_files)} cache files")
 
-    def get_cache_info(self) -> dict:
+    def get_cache_info(self) -> dict[str, int | float | str]:
         """Get information about cached data."""
         cache_files = list(self.cache_dir.glob("*.geoparquet"))
         total_size = sum(f.stat().st_size for f in cache_files)

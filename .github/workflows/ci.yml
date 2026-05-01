@@ -164,7 +164,7 @@ jobs:
           cache-dependency-glob: python-geo-cli/uv.lock
 
       - name: Install dependencies
-        run: uv sync --extra dev
+        run: uv sync --extra dev --extra viz
 
       - name: Typecheck
         run: uv run pyright
