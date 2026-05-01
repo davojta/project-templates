@@ -17,12 +17,14 @@ GeoJSON feature review application with Bun API backend and React frontend.
 ```bash
 bun run dev          # Start dev server (API + client)
 bun run build        # Build for production
-bun run test         # Run unit tests (vitest)
+bun run start        # Run production build
+bun run seed         # Seed database
+bun run test         # Run unit tests (vitest, watch mode)
+bun run test:ci      # Run unit tests (vitest, CI/single run)
 bun run test:e2e     # Run e2e tests (cypress)
 bun run typecheck    # Type check
 bun run lint         # Lint
 bun run format       # Format code
-bun run seed         # Seed database
 ```
 
 ## Project Structure
