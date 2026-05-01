@@ -176,14 +176,25 @@ jobs:
     if: needs.changes.outputs.python-geo-cli == 'true'
     name: python-geo-cli / lint & format
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: python-geo-cli
     steps:
       - uses: actions/checkout@v4
 
+      - uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: python-geo-cli/uv.lock
+
+      - name: Install dev dependencies
+        run: uv sync --group dev
+
       - name: Lint
-        run: uvx ruff check python-geo-cli/src/
+        run: uv run ruff check src/
 
       - name: Format check
-        run: uvx ruff format --check python-geo-cli/src/
+        run: uv run ruff format --check src/
 
   python-geo-cli-test:
     needs: changes
