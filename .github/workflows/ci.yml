@@ -17,6 +17,8 @@ jobs:
       bun-api-fe-review-geojson: ${{ steps.filter.outputs.bun-api-fe-review-geojson }}
       python-cli: ${{ steps.filter.outputs.python-cli }}
       python-geo-cli: ${{ steps.filter.outputs.python-geo-cli }}
+      go-cli: ${{ steps.filter.outputs.go-cli }}
+      rust-cli: ${{ steps.filter.outputs.rust-cli }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -35,6 +37,10 @@ jobs:
               - 'python-cli/**'
             python-geo-cli:
               - 'python-geo-cli/**'
+            go-cli:
+              - 'go-cli/**'
+            rust-cli:
+              - 'rust-cli/**'
 
   # ─── nodejs-ts-cli ──────────────────────────────────────────────────────────
   nodejs-ts-cli:
@@ -167,6 +173,9 @@ jobs:
       - name: Format check
         run: uv run ruff format --check .
 
+      - name: Typecheck
+        run: uv run pyright
+
       - name: Test
         run: uv run pytest
 
@@ -226,3 +235,61 @@ jobs:
       - name: Test
         run: uv run pytest
         timeout-minutes: 20
+
+  # ─── go-cli ─────────────────────────────────────────────────────────────────
+  go-cli:
+    needs: changes
+    if: needs.changes.outputs.go-cli == 'true'
+    name: go-cli
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: go-cli
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go-cli/go.mod
+          cache-dependency-path: go-cli/go.sum
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.1
+          working-directory: go-cli
+
+      - name: Format check
+        run: test -z "$(gofmt -l .)" || (gofmt -l . && exit 1)
+
+      - name: Test
+        run: make run-all-tests
+
+  # ─── rust-cli ───────────────────────────────────────────────────────────────
+  rust-cli:
+    needs: changes
+    if: needs.changes.outputs.rust-cli == 'true'
+    name: rust-cli
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: rust-cli
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust-cli
+
+      - name: Lint
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Format check
+        run: cargo fmt --check
+
+      - name: Test
+        run: cargo test

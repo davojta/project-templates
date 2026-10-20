@@ -17,7 +17,7 @@ Set of templates to start from scratch for different languages and stacks.
 
 | Template | Type | Description |
 |----------|------|-------------|
-| [python-cli](./python-cli) | Python CLI | CLI with Click, Pydantic models, UV package manager, pytest, and ruff |
+| [python-cli](./python-cli) | Python CLI | CLI with Typer, Pydantic models, UV package manager, pytest, ruff, and pyright (strict) |
 | [python-geo-cli](./python-geo-cli) | Geospatial CLI | Advanced spatial analysis with SedonaDB, QuackOSM, KeplerGL, GeoParquet, and H3 indexing |
 
 ### Go
