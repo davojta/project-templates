@@ -7,7 +7,7 @@ class Message(BaseModel):
     """A message model with type-safe validation."""
 
     content: str = Field(..., description="The message content")
-    recipient: str | None = Field(None, description="The message recipient")
+    recipient: str | None = Field(default=None, description="The message recipient")
 
     def greet(self) -> str:
         """Generate a greeting message."""

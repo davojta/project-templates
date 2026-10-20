@@ -8,23 +8,23 @@ packages = ["src/python_cli"]
 [project]
 name = "python-cli-template"
 version = "0.1.0"
-description = "A modern Python CLI template using uv, pytest, ruff, and click"
+description = "A modern Python CLI template using uv, pytest, ruff, pyright, and typer"
 authors = [
     {name = "Template Author", email = "author@example.com"},
 ]
 dependencies = [
-    "click>=8.0.0",
-    "pydantic>=2.0.0",
+    "typer>=0.27.0",
+    "pydantic>=2.14.0",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.14"
 readme = "README.md"
 license = {text = "MIT"}
 
 [project.optional-dependencies]
 test = [
-    "pytest>=7.0.0",
-    "pytest-cov>=4.0.0",
-    "pytest-mock>=3.10.0",
+    "pytest>=9.1.0",
+    "pytest-cov>=7.1.0",
+    "pytest-mock>=3.17.0",
 ]
 
 [project.scripts]
@@ -32,18 +32,18 @@ python-cli = "python_cli.cli:main"
 
 [dependency-groups]
 dev = [
-    "ruff>=0.1.0",
-    "pytest>=7.0.0",
-    "pytest-cov>=4.0.0",
-    "pytest-mock>=3.10.0",
+    "ruff>=0.17.0",
+    "pyright[nodejs]>=1.1.414",
+    "pytest>=9.1.0",
+    "pytest-cov>=7.1.0",
+    "pytest-mock>=3.17.0",
 ]
 
 [tool.pytest.ini_options]
-minversion = "7.0"
+minversion = "9.0"
 addopts = "-ra -q --strict-markers --strict-config"
 testpaths = [
     "tests",
-    "integration-tests",
     "e2e-tests",
 ]
 python_files = [
@@ -55,7 +55,6 @@ python_files = [
 source = ["src"]
 omit = [
     "*/tests/*",
-    "*/integration-tests/*",
     "*/e2e-tests/*",
 ]
 
@@ -73,8 +72,15 @@ exclude_lines = [
     "@(abc\\.)?abstractmethod",
 ]
 
+[tool.pyright]
+pythonVersion = "3.14"
+typeCheckingMode = "strict"
+include = ["src", "tests", "e2e-tests"]
+venvPath = "."
+venv = ".venv"
+
 [tool.ruff]
-target-version = "py310"
+target-version = "py314"
 line-length = 100
 
 [tool.ruff.lint]
