@@ -4,9 +4,7 @@
       "Bash(npm install:*)",
       "Bash(git add:*)",
       "Bash(gh repo view:*)",
-      "Bash(mkdir:*)",
-      "Bash(openspec validate:*)",
-      "Bash(openspec list:*)"
+      "Bash(mkdir:*)"
     ],
     "deny": [],
     "ask": [
