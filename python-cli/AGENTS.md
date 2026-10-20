@@ -2,7 +2,7 @@
 
 Python CLI template using uv, Typer, Pydantic, pytest, ruff, and pyright.
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for module responsibilities and [REVIEW.md](REVIEW.md) for code review rules. Stack decisions are recorded in [docs/adr/](docs/adr/).
+See [ARCHITECTURE.md](ARCHITECTURE.md) for module responsibilities and [REVIEW.md](REVIEW.md) for code review rules. Stack decisions are recorded in [docs/adr/](docs/adr/); follow [docs/AGENTS.md](docs/AGENTS.md) when writing docs.
 
 ## Tech Stack
 
@@ -61,6 +61,20 @@ Two levels only:
 
 - **Unit** (`tests/`): call functions and models in `main.py` / `models.py` directly. No subprocesses.
 - **E2E** (`e2e-tests/`): run `python -m python_cli.cli` as a subprocess and assert on exit code, stdout, and stderr. Every CLI command and option belongs here.
+
+## Code Principles
+
+- **KISS.** Start with the simplest solution that works. No speculative design; a plain function beats a pattern with one implementation. Let code repeat 2–3 times before extracting a helper.
+- **Minimal diff with `main`.** Change only what the task asks. No reformatting, import reordering, renames, or unrelated cleanups; split those into a separate change.
+- **Functional style.** Prefer small pure functions with no mutation or I/O (like `main.py`). Compose them in a pipeline rather than nesting calls. Prefer comprehensions, `map`, and `filter` over loops that mutate. Use `functools.partial` for config-like arguments.
+- **Clean functions.** Each function does one thing and takes as few arguments as possible (ideally 0–2). When arguments grow, group them into a Pydantic model instead of adding more parameters.
+
+## Code Style & Refactoring
+
+- **Errors:** handle them, print a message, or re-raise. Never swallow them silently.
+- **Validate at the boundary:** check CLI input and file reads once in `cli.py`, then pass only validated data into `main.py`.
+- **Prefer the standard library** and existing dependencies over custom code.
+- **Moving files:** update every import, fixture path, and test reference, then run `make run-all-tests`.
 
 ## Validation
 
